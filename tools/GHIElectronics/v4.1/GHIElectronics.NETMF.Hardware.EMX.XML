@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Hardware.EMX</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Hardware.EMX">
+            <summary>
+            Exposes EMX specific functionality.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.EMX.Pin">
+            <summary>
+            Provides Pin definitions for EMX.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.GPIO_NONE">
+            <summary>A value indicating that no GPIO pin is specified.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO0">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO1">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO2">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO3">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO4">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO5">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO6">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO7">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO8">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO9">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO10">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO11">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO12">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO13">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO14">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO15">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO16">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO17">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO18">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO19">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO20">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO21">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO22">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO23">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO24">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO25">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO26">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO27">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO28">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO29">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO30">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO31">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO32">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO33">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO34">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO35">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO36">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO37">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO38">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO39">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO40">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO41">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO42">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO43">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO44">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO45">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO46">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO47">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO48">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO49">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO50">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO51">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO52">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO53">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO54">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO55">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO56">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO57">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO58">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO59">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO60">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO61">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO62">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO63">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO64">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO65">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO66">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO67">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO68">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO69">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO70">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO71">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO72">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO73">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO74">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO75">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.EMX.Pin.IO76">
+            <summary>GPIO pin.</summary>
+        </member>
+    </members>
+</doc>

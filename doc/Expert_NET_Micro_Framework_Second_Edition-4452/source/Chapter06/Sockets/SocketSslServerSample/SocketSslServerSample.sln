@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SocketSslServerSample", "SocketSslServerSample\SocketSslServerSample.csproj", "{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B41D7B65-058C-4F64-85BC-E9E5B8D4AFCE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

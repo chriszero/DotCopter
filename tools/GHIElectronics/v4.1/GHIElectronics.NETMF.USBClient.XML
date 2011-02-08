@@ -1,0 +1,1283 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.USBClient</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Stream">
+            <summary>
+            USB stream for reading and writing through two endpoints.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Stream.NullEndpoint">
+            <summary>
+            Represents no Endpoint.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Stream.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes data.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Stream.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads data.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes read.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Stream.Flush">
+            <summary>
+            Flushed the current USB write buffers.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBClient.USBC_Stream.WriteTimeout">
+            <summary>
+            Write timeout. Default is 500 milli-seconds.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBClient.USBC_Stream.ReadTimeout">
+            <summary>
+            Read timeout. Default is 500 milli-seconds.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Device">
+            <summary>
+            Represent a USB device.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Device.#ctor(System.UInt16,System.UInt16,System.UInt16,System.UInt16,System.String,System.String,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="vendorID">Vendor ID.</param>
+            <param name="productID">Product ID.</param>
+            <param name="deviceVersion">Device version.</param>
+            <param name="maxPower_mA">Maximum power required from USB bus in milli amps.</param>
+            <param name="manufacturerString">Manufacturer name.</param>
+            <param name="productString">Product name.</param>
+            <param name="serialNumberString">Device serial number.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Device.CreateUSBStream(System.Byte,System.Byte)">
+            <summary>
+            Creates a USB steam for reading/writing to the device.
+            </summary>
+            <param name="writeEndpoint">Write Endpoint. Use <c>USBC_Stream.NullEndpoint</c> if not available.</param>
+            <param name="readEndpoint">Read Endpoint. Use <c>USBC_Stream.NullEndpoint</c> if not available.</param>
+            <returns>The created stream.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Device.ReserveNewEndpoint">
+            <summary>
+            Gets an available endpoint.
+            </summary>
+            <returns>Endpoint number.</returns>
+            <remarks>
+            Note: The number of available endpoints depends on your platform.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Device.AddDescriptor(Microsoft.SPOT.Hardware.UsbClient.Configuration.Descriptor)">
+            <summary>
+            Adds a USB descriptor to the device.
+            </summary>
+            <param name="desc">Descriptor.</param>
+            <remarks>
+            This is for descriptors that are not part of the Configuration Descriptors pack and needs a special request.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Device.AddInterface(Microsoft.SPOT.Hardware.UsbClient.Configuration.UsbInterface,System.String)">
+            <summary>
+            Adds a USB interface to the device.
+            </summary>
+            <param name="usbInterface">Interface.</param>
+            <param name="interfaceString">Interface name.</param>
+            <returns>Assigned interface index.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Mouse">
+            <summary>
+            Creates USB Client Mouse.
+            </summary>
+            <remarks>
+            Using this class, your platform can be a USB mouse connected to a PC. You can send changes in X position, Y position, changes in wheel position and pressed mouse buttons. Note that a change in position is reported and not an absolute value.<br/>
+            Five mouse buttons are supported.<br/>
+            </remarks>
+            <example>
+            The following will create a USB mouse and move the cursor in circles on the PC screen.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start Mouse
+            USBC_Mouse mouse = USBClientController.StandardDevices.StartMouse();
+
+            // Move pointer in a swirl
+            const int ANGLE_STEP_SIZE = 7;
+            const int MIN_CIRCLE_DIAMETER = 50;
+            const int MAX_CIRCLE_DIAMETER = 300;
+            const int CIRCLE_DIAMETER_STEP_SIZE = 1;
+
+            int diameter = MIN_CIRCLE_DIAMETER;
+            int diameterIncrease = CIRCLE_DIAMETER_STEP_SIZE;
+            int angle = 0;
+            int factor;
+
+            while (true)
+            {
+                // Check if connected to PC
+                if (USBClientController.GetState() != USBClientController.State.Running)
+                {
+                    Debug.Print("Waiting to connect to PC...");
+                }
+                else
+                {
+                    // Note Mouse X, Y are reported as change in position (relative position, not absolute)
+                    factor = diameter * ANGLE_STEP_SIZE * (int)System.Math.PI / 180 / 2;
+                    int dx = (-1 * factor * (int)Microsoft.SPOT.Math.Sin(angle) / 1000);
+                    int dy = (factor * (int)Microsoft.SPOT.Math.Cos(angle) / 1000);
+
+                    angle += ANGLE_STEP_SIZE;
+                    diameter += diameterIncrease;
+
+                    if (diameter >= MAX_CIRCLE_DIAMETER ||
+                        diameter <= MIN_CIRCLE_DIAMETER
+                        )
+                        diameterIncrease *= -1;
+
+                    // report mouse position
+                    mouse.SendData(dx, dy, 0, USBC_Mouse.Buttons.BUTTON_NONE);
+                }
+
+                Thread.Sleep(10);
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Mouse.#ctor(GHIElectronics.NETMF.USBClient.USBC_Device,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="device">USBC device to attach to.</param>
+            <param name="interfaceName">Name of this USB interface.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Mouse.SendData(System.Int32,System.Int32,System.Int32,GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons)">
+            <summary>
+            Sends Mouse change in position and the buttons status.
+            </summary>
+            <param name="dx">Change in x direction from -127 to 127.</param>
+            <param name="dy">Change in y direction from -127 to 127.</param>
+            <param name="dw">Change in mouse wheel position from -127 to 127.</param>
+            <param name="buttons">Currently pressed buttons.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons">
+            <summary>
+            Lists available mouse buttons.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_NONE">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_LEFT">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_RIGHT">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_MIDDLE">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_XBUTTON1">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Mouse.Buttons.BUTTON_XBUTTON2">
+            <exclude/>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBClientController">
+            <summary>
+            Handles USB client controller.
+            </summary>
+            <remarks>
+            USB Client (USBC known as Device or Slave), is where your .Net Micro Framework device becomes a USB slave and connected to a master host such as PC running Windows. The USB Client can be used for debugging and deployment of applications through Microsoft Visual Studio but with this class you can change how it works.<br/>
+            <br/>
+            <strong style="color:red">Note: </strong> Note that you should change your NETMF debug interface to something other than USB because we will be accessing it. Refer to your platform documentation for details on how to change the debug interface. Also, some of them support changing the debug interface through software using <c>GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Set()</c>.<br/>
+            One exception is a standard device for CDC plus USB NETMF USB debugging, please see <c>USBC_CDC</c> class for details.<br/>
+            <br/>
+            This class supports several standard devices and it is capable of creating a USB device that is composed of several interfaces. If a USB Client device is not directly supported, it can be created by accessing USBC on a low level. The following are the directly supported devices:<br/>
+            <ul>
+            <li>Mass Storage</li>
+            <li>CDC (Virtual COM port)</li>
+            <li>Mouse</li>
+            <li>Keyboard</li>
+            </ul>
+            <strong style="color:blue">Using Standard Devices</strong><br/>
+            The directly supported devices are available under <c>USBClientController.StandardDevices</c>. Refer to the supported class documentation for details on how they work. You can connect to the PC host as a certain USB device and later change it to another type of USB device. See the following example:
+            <code>
+            // Start as a USB Mouse
+            USBC_Mouse mouse = USBClientController.StandardDevices.StartMouse();
+            
+            // ...
+            
+            // At a later time, you can stop the USB connection
+            USBClientController.Stop();
+            
+            // ...
+             
+            // Assume that we need to connect as a USB Keyboard
+            USBC_Keyboard kb = USBClientController.StandardDevices.StartKeyboard();
+            
+            // You can stop connection if needed
+            USBClientController.Stop();
+            </code>
+            Note that the USBC must be stopped before changing connections.<br/>
+            <br/>
+            <strong style="color:blue">Using Composite Standard Devices / Custom Devices (Advanced)</strong><br/>
+            You can make your platform appear as a USB device with several functionalities. For example, it can be a USB Keyboard in addition to a CDC device at the same time.<br/>
+            <br/>
+            <strong>Note:</strong> Be CAREFUL when changing USB configurations and settings, as you go on with development and creating your USB device and connecting it to the PC, Windows might save the device information in its registry. Therefore, if you change the USB device settings/Interfaces and connect it again, it might not work correctly. Make sure to be careful with changing your USB device settings. Also, you might need to delete the all settings from Windows registry manually. If you change your Vendor ID/Product ID, Windows will see your USB device as a new device with new configuration.<br/>
+            <br/>
+            When creating a USB device, you need a Vendor ID (VID) for your organization. VID identifies the manufacturer of the product. This is assigned by USB organization. Please contact <c>www.usb.org</c><br/>
+            Also, a Product ID (PID) is needed to identify the product from the manufacturer. This is assigned by your organization.<br/>
+            If your created USB device does not have standard PC drivers, you may need to develop PC side drivers to access your device.<br/>
+            For composite devices with multiple interfaces, the first added interface will be assigned to interface index 0, second interface to interface inex 1 and so on. This information might be needed when developing your drivers.<br/>
+            <br/>
+            Creating a composite device is easy and better explained by a simple example. The following will create a device that is composed of a CDC plus a Keyboard. Also, it is possible to add a custom interface:
+            <code>
+<![CDATA[
+ushort myVID = 0x1234;
+ushort myPID = 0x0001;
+ushort myDeviceVersion = 0x100;
+ushort myDeviceMaxPower = 250; // in milli amps
+string companyName = "My Company";
+string productName = "My Product";
+string myDeviceSerialNumber = "0";
+
+// Create the device
+USBC_Device device = new USBC_Device(myVID, myPID, myDeviceVersion, myDeviceMaxPower, companyName, productName, myDeviceSerialNumber);
+
+// Add a CDC device
+USBC_CDC cdc = new USBC_CDC(device, "My CDC Interface");
+            
+// Add a Keyboard
+USBC_Keyboard kb = new USBC_Keyboard(device, "My KB Interface");
+
+// You can even add custom interfaces.
+//...
+
+// When ready, you can start your device as follows:
+USBClientController.Start(device);
+]]>
+</code>
+            An example to create a custom USB interface is provided in the Examples section. Also, there might be some limitations on how many interfaces can be created depending on your platform and configurations.<br/>
+            For raw communications, <c>USBC_Stream</c> must be used and streams must be created before starting the USB device.<br/>
+            <br/>
+            <strong style="color:red">Note that you may need an understanding of the USB specifications in order to use the advanced functionality (www.usb.org).</strong><br/>
+            </remarks>
+            <example>
+            The following will create a USB Keyboard and send "Hello world!" to PC every second.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start keyboard
+            USBC_Keyboard kb = USBClientController.StandardDevices.StartKeyboard();
+
+            Debug.Print("Waiting to connect to PC...");
+
+            // Send "Hello world!" every second
+            while (true)
+            {
+                // Check if connected to PC
+                if (USBClientController.GetState() != USBClientController.State.Running)
+                {
+                    Debug.Print("Waiting to connect to PC...");
+                }
+                else
+                {
+                    // We need shift down for capital "H"
+                    kb.KeyDown(USBC_Key.LeftShift);
+                    kb.KeyTap(USBC_Key.H);
+                    kb.KeyUp(USBC_Key.LeftShift);
+
+                    // Now "ello world"
+                    kb.KeyTap(USBC_Key.E); 
+                    kb.KeyTap(USBC_Key.L); 
+                    kb.KeyTap(USBC_Key.L); 
+                    kb.KeyTap(USBC_Key.O); 
+                    kb.KeyTap(USBC_Key.Space);
+                    kb.KeyTap(USBC_Key.W); 
+                    kb.KeyTap(USBC_Key.O); 
+                    kb.KeyTap(USBC_Key.R);
+                    kb.KeyTap(USBC_Key.L);
+                    kb.KeyTap(USBC_Key.D); 
+
+                    // The "!"
+                    kb.KeyDown(USBC_Key.LeftShift);
+                    kb.KeyTap(USBC_Key.D1);
+                    kb.KeyUp(USBC_Key.LeftShift);
+
+                    // Send an enter key
+                    kb.KeyTap(USBC_Key.Enter);
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+
+    }
+}
+]]>
+</code>
+            The following will create a custom USB device.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.Hardware;
+
+using MS = Microsoft.SPOT.Hardware.UsbClient;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            ushort myVID = 0x1234;
+            ushort myPID = 0x0001;
+            ushort myDeviceVersion = 0x100;
+            ushort myDeviceMaxPower = 250; // in milli amps
+            string companyName = "My Company";
+            string productName = "My Product";
+            string myDeviceSerialNumber = "0";
+
+            // Create the device. Assume it just has one read and one write endpoints.
+            USBC_Device device = new USBC_Device(myVID, myPID, myDeviceVersion, myDeviceMaxPower, companyName, productName, myDeviceSerialNumber);
+
+            byte readEPNumber = device.ReserveNewEndpoint();
+            byte writeEPNumber = device.ReserveNewEndpoint();
+
+            MS.Configuration.Endpoint[] epDesc = {
+                new MS.Configuration.Endpoint(writeEPNumber, MS.Configuration.Endpoint.ATTRIB_Write | MS.Configuration.Endpoint.ATTRIB_Bulk),
+                new MS.Configuration.Endpoint(readEPNumber, MS.Configuration.Endpoint.ATTRIB_Read | MS.Configuration.Endpoint.ATTRIB_Bulk),
+            };
+            epDesc[0].wMaxPacketSize = 64;
+            epDesc[1].wMaxPacketSize = 64;
+
+            MS.Configuration.UsbInterface usbInterface = new MS.Configuration.UsbInterface(0, epDesc);
+
+            usbInterface.bInterfaceClass = 0xFF; // vendor defined
+            usbInterface.bInterfaceSubClass = 0xFF;
+            usbInterface.bInterfaceProtocol = 0xFF;
+
+            byte interfaceIndex = device.AddInterface(usbInterface, "My interface name");
+
+            // This is used for reading and writing
+            USBC_Stream stream = device.CreateUSBStream(writeEPNumber, readEPNumber);
+
+            // All done, you can start the device now
+            USBClientController.Start(device);
+
+            Debug.Print("Waiting to connect to PC...");
+
+            while (true)
+            {
+                // Check if connected to PC
+                if (USBClientController.GetState() != USBClientController.State.Running)
+                {
+                    Debug.Print("Waiting to connect to PC...");
+                }
+                else
+                {
+                    // Read and write using the stream
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.Start(GHIElectronics.NETMF.USBClient.USBC_Device)">
+            <summary>
+            Starts USB Client connection to PC.
+            </summary>
+            <param name="device">Device to start.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.Stop">
+            <summary>
+            Stops USB Client connection to PC.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.GetState">
+            <summary>
+            Gets current USB Client connection status.
+            </summary>
+            <returns>Current State.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBClientController.State">
+            <summary>
+            USB Client connection status.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Detached">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Attached">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Powered">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Default">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Address">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Running">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Suspended">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBClientController.State.Stopped">
+            <summary>USB port state.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices">
+            <summary>
+            Directly supported standard USB devices.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices.StartMouse">
+            <summary>
+            Starts USB Client as a Mouse.
+            </summary>
+            <returns>Mouse.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices.StartKeyboard">
+            <summary>
+            Starts USB Client as a Keyboard.
+            </summary>
+            <returns>Keyboard.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices.StartCDC">
+            <summary>
+            Starts USB Client as a CDC (Virtual COM Port).
+            </summary>
+            <returns>CDC.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices.StartCDC_WithDebugging">
+            <summary>
+            Starts USB Client as a CDC (Virtual COM Port) plus NETMF Debug Interface.
+            </summary>
+            <returns>CDC.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBClientController.StandardDevices.StartMassStorage">
+            <summary>
+            Starts USB Client as a Mass Storage device.
+            </summary>
+            <returns>Mass Storage device.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_MassStorage">
+            <summary>
+            Creates USB Client Mass Storage.
+            </summary>
+            <remarks>
+            Using the MS (Mass Storage) functionality, your Micro Framework device will appear as a virtual Mass Storage device (similar to a USB Drive). For example, you can have an SD card and other physical USB thumb drives internally in your embedded device. These are exposed with one USB Client connection to your PC and the Operating System (Windows) on your PC will see the available storage devices and manipulate them.<br/>
+            <br/>
+            <strong>Note:</strong> Only one Mass Storage Interface can be used in a USB device, but multiple logical units are supported. Each logical unit will appear as a separate USB memory on your host PC. The number of LUNs (Logical Units) should be fixed for a USB device. However, the standard provided class only supports one logical unit.<br/>
+            <br/>
+            <strong style="color:blue">Using the Mass Storage Client Device</strong><br/>
+            <br/>
+            This class accepts storage devices from <c>GHIElectronics.NETMF.IO.PersistentStorage</c>. Make sure to understand how storage devices are handled in order to create a USB Client MS.<br/>
+            <br/>
+            <strong style="color:blue">Step 1: </strong>Create and start MS device:<br/>
+            Using the standard provided classes, this is done as follows: <c>USBC_MassStorage ms = USBClientController.StandardDevices.StartMassStorage();</c>.<br/>
+            At this point, your host PC will see the USB memory slot with no media inserted. For example, if you try to access the USB memory on your PC, it will ask you to insert the needed storage device.<br/>
+            <br/>
+            <strong style="color:blue">Step 2: </strong>The user inserted an SD card to your Micro Framework device. You can attach these immediately to your USB Client. This only makes the storage devices connected to the USB Client driver. The host PC will NOT see them inserted.
+            <code>
+            PersistentStorage sd = new PersistentStorage("SD");
+            ms.AttachLun(0, sd, " ", " ");
+            </code>
+            <strong style="color:blue">Step 3: </strong>When the user needs to enable the host PC access to the storage devices, it can be done as follows:
+            <code>
+            ms.EnableLun(0);
+            </code>
+            <strong style="color:blue">Step 4: </strong>You can at any point disable the host PC access. It can then be enabled or disabled as necessary. For example, the following will disable the SD card access.
+            <code>
+            ms.DisableLun(0);
+            </code>
+            <strong>Note: </strong>The Mass Storage processing is shared with your C# application and threads. Our example does nothing when Mass Storage is connected to PC and the best transfer rate can be obtained.<br/>
+            <br/>
+            Also, note that you can use NETMF file system along with the USB Client feature. See <c>GHIElectronics.NETMF.IO.PersistentStorage</c> for details.
+            </remarks>
+            <example>
+            The following example assumes that an SD card is inserted in your Micro Framework device and it will create a USB Client connection to a host PC.
+            <code>
+<![CDATA[
+using System;
+using System.IO;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.IO;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.IO;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start MS
+            USBC_MassStorage ms = USBClientController.StandardDevices.StartMassStorage();
+
+            // Assume SD card is connected
+            PersistentStorage sd;
+            try
+            {
+                sd = new PersistentStorage("SD");
+            }
+            catch
+            {
+                throw new Exception("SD card not detected");
+            }
+            ms.AttachLun(0, sd, " ", " ");
+
+
+            // enable host access 
+            ms.EnableLun(0);
+
+            Thread.Sleep(Timeout.Infinite);
+        }
+    }
+}
+]]>
+</code>
+            The following example assumes that an SD card is inserted in your Micro Framework device and it will create a USB Client connection to a host PC. You will have two options: the first one will make the SD card available to NETMF and you can access the files from your platform. The second one will make the SD card available to the host PC.
+            <code>
+<![CDATA[
+using System;
+using System.IO;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.IO;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.IO;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        static AutoResetEvent buttonPressedEvent = new AutoResetEvent(false);
+
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start MS
+            USBC_MassStorage ms = USBClientController.StandardDevices.StartMassStorage();
+
+            // Assume SD card is connected
+            PersistentStorage sd;
+            try
+            {
+                sd = new PersistentStorage("SD");
+            }
+            catch
+            {
+                throw new Exception("SD card not detected");
+            }
+            ms.AttachLun(0, sd, " ", " ");
+
+            // Assume that our system has a Select button. Change as necessary.
+            InterruptPort select = new InterruptPort(HardwareProvider.HwProvider.GetButtonPins(Button.VK_SELECT), true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeHigh);
+            select.OnInterrupt += new NativeEventHandler(select_OnInterrupt);
+
+            // wait to connect to PC
+            while (USBClientController.GetState() != USBClientController.State.Running)
+            {
+                Debug.Print("Waiting to connect to PC...");
+                Thread.Sleep(1000);
+            }
+
+            string RootDirectory = "\\SD";
+
+            // enable access options
+            while (true)
+            {
+                // Option 1
+                Debug.Print("Press Select button to list the available files and folders.");
+                buttonPressedEvent.WaitOne();
+
+                sd.MountFileSystem();
+
+                string[] files = Directory.GetFiles(RootDirectory);
+                string[] folders = Directory.GetDirectories(RootDirectory);
+
+                Debug.Print("Files available on " +RootDirectory + ":");
+                for (int i = 0; i < files.Length; i++)
+                    Debug.Print(files[i]);
+
+                Debug.Print("Folders available on " + RootDirectory + ":");
+                for (int i = 0; i < folders.Length; i++)
+                    Debug.Print(folders[i]);
+
+                // Option 2
+                Debug.Print("Press Select button to enable PC access to SD card.");
+                buttonPressedEvent.WaitOne();
+
+                sd.UnmountFileSystem();
+                ms.EnableLun(0);
+
+                Debug.Print("Press Select button to disable PC access to SD card.");
+                buttonPressedEvent.WaitOne();
+
+                ms.DisableLun(0);
+            }
+        }
+
+        static void select_OnInterrupt(uint data1, uint data2, DateTime time)
+        {
+            buttonPressedEvent.Set();
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_MassStorage.#ctor(GHIElectronics.NETMF.USBClient.USBC_Device,System.String,System.Byte)">
+            <summary>
+            Creates a Mass Storage device.
+            </summary>
+            <param name="device">USB device to be associated with.</param>
+            <param name="interfaceName">Interface name.</param>
+            /// <param name="lunCount">Logical units count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_MassStorage.AttachLun(System.Byte,GHIElectronics.NETMF.IO.PersistentStorage,System.String,System.String)">
+            <summary>
+            Attaches a storage device to a logical unit.
+            </summary>
+            <param name="lunIndex">Logical unit index.</param>
+            <param name="ps">Storage device.</param>
+            <param name="vendor">Vendor name.</param>
+            <param name="product">Product name.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_MassStorage.EnableLun(System.Byte)">
+            <summary>
+            Enables the logical unit and USB Client access.
+            </summary>
+            <param name="lunIndex">Logical unit index.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_MassStorage.DisableLun(System.Byte)">
+            <summary>
+            Disables the logical unit and USB Client access.
+            </summary>
+            <param name="lunIndex">Logical unit index.</param>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBClient.USBC_MassStorage.MaxSupportedLun">
+            <summary>
+            Maximum supported logical units.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_CDC">
+            <summary>
+            Creates USB Client CDC (Virtual COM Port).
+            </summary>
+            <remarks>
+            Using this class, your platform can be a USB CDC device connected to PC. This will appear to the host PC as a virtual COM port which makes this class ideal and easy to use when general communications with PC over USB is needed. Several host operating systems already have the necessary COM port drivers.<br/>
+            When you connect the CDC platform to PC, Windows will ask for a driver. The driver is available here: <a href="../CDC_Driver.inf">CDC Driver</a>.<br/>
+            <br/>
+            <strong>Note:</strong> You might have error communicating with virtual COM ports if you dissconnect the USB cable while the COM port is open on your PC. You will need to disconnect the device and close the COM port. Then you can connect the USB device and re-open the COM port.<br/>
+            <br/>
+            If you build a custom device or a composite device, the driver must be changed. The inf file has the VID/PID numbers and it should have the interface index in case of multiple interfaces. These are written in the inf file as follows: USB\Vid_VVVV&amp;Pid_PPPP&amp;MI_II, where VVVV is your VID, PPPP is your PID and II is the interface index.<br/>
+            <br/>
+            <strong style="color:blue">CDC Plus USB NETMF Debug Interface</strong><br/>
+            GHI provides a standard device that is composed of CDC and USB NETMF debug interface. Typically, the user should change the NETMF debug interface to something other than USB and then use the regular CDC device. However, there is a way to use CDC plus USB debug interface at the same time. Note that if you experience problems or weird behavior, you should use the standard way of changing the debug interface first.<br/>
+            This feature is used similarly to regular CDC device. First, we should be using USB for NETMF debugging. Then to start CDC, we have to call <c>USBClientController.StandardDevices.StartCDC_WithDebugging</c>. Note that the method call disconnects USB and then connects again as a NETMF debug interface plus a CDC device. In this case, Visual Studio debugger may stop. You have to pause it (Break All) and then click resume (Continue or Step) to continue with normal debugging.<br/>
+            <br/>
+            This feature needs separate drivers for NETMF debug interface and CDC. They are available here: <a href="../GHI_NETMF_Interface_with_CDC.zip">Debug + CDC Driver</a>.
+            </remarks>
+            <example>
+            The following will create a USB CDC and send "Hello world!" to PC every second.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start CDC
+            USBC_CDC cdc = USBClientController.StandardDevices.StartCDC();
+
+            // Send "Hello world!" to PC every second. (Append a new line too)
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes("Hello world!\r\n");
+            while (true)
+            {
+                // Check if connected to PC
+                if (USBClientController.GetState() != USBClientController.State.Running)
+                {
+                    Debug.Print("Waiting to connect to PC...");
+                }
+                else
+                {
+                    cdc.Write(bytes, 0, bytes.Length);
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_CDC.#ctor(GHIElectronics.NETMF.USBClient.USBC_Device,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="device">USBC device to attach to.</param>
+            <param name="interfaceName">Name of this USB interface.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_CDC.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes data to the host.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_CDC.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads data from host.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes read.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBClient.USBC_CDC.ReadTimeout">
+            <summary>
+            Read timeout. Default value is 500 milli-seconds.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBClient.USBC_CDC.WriteTimeout">
+            <summary>
+            Write timeout. Default value is 500 milli-seconds.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Key">
+            <summary>
+            Lists the available keys from a Keyboard.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.None">
+            <summary>No Key is associated.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.A">
+            <summary>Key: A.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.B">
+            <summary>Key: B.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.C">
+            <summary>Key: C.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D">
+            <summary>Key: D.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.E">
+            <summary>Key: E.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F">
+            <summary>Key: F.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.G">
+            <summary>Key: G.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.H">
+            <summary>Key: H.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.I">
+            <summary>Key: I.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.J">
+            <summary>Key: J.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.K">
+            <summary>Key: K.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.L">
+            <summary>Key: L.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.M">
+            <summary>Key: M.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.N">
+            <summary>Key: N.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.O">
+            <summary>Key: O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.P">
+            <summary>Key: P.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Q">
+            <summary>Key: Q.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.R">
+            <summary>Key: R.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.S">
+            <summary>Key: S.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.T">
+            <summary>Key: T.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.U">
+            <summary>Key: U.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.V">
+            <summary>Key: V.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.W">
+            <summary>Key: W.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.X">
+            <summary>Key: X.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Y">
+            <summary>Key: Y.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Z">
+            <summary>Key: Z.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D1">
+            <summary>Key: 1 or !.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D2">
+            <summary>Key: 2 or @.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D3">
+            <summary>Key: 3 or #.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D4">
+            <summary>Key: 4 or $.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D5">
+            <summary>Key: 5 or %.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D6">
+            <summary>Key: 6 or ^.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D7">
+            <summary>Key: 7 or &amp;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D8">
+            <summary>Key: 8 or *.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D9">
+            <summary>Key: 9 or (.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.D0">
+            <summary>Key: 0 or ).</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Enter">
+            <summary>Key: Enter.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Escape">
+            <summary>Key: Esc.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.BackSpace">
+            <summary>Key: Backspace.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Tab">
+            <summary>Key: Tab.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Space">
+            <summary>Key: Space.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Substract">
+            <summary>Key: - or _.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Equal">
+            <summary>Key: = or +.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.OpenBrackets">
+            <summary>Key: [ or {.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.CloseBrackets">
+            <summary>Key: ] or }.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Backslash">
+            <summary>Key: \ or |.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.NON_US">
+            <summary>Key: Not supported. Non-US keyboard character.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Semicolon">
+            <summary>Key: ; or :.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Quotes">
+            <summary>Key: ' or ".</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.GraveAccent">
+            <summary>Key: ` or ~.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Comma">
+            <summary>Key: , or &lt;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Period">
+            <summary>Key: . or &gt;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Divide">
+            <summary>Key: / or ?.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.CapsLock">
+            <summary>Key: Caps Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F1">
+            <summary>Key: F1.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F2">
+            <summary>Key: F2.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F3">
+            <summary>Key: F3.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F4">
+            <summary>Key: F4.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F5">
+            <summary>Key: F5.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F6">
+            <summary>Key: F6.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F7">
+            <summary>Key: F7.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F8">
+            <summary>Key: F8.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F9">
+            <summary>Key: F9.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F10">
+            <summary>Key: F10.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F11">
+            <summary>Key: F11.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.F12">
+            <summary>Key: F12.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.PrintScreen">
+            <summary>Key: Print Screen.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.ScrollLock">
+            <summary>Key: Scroll Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Pause">
+            <summary>Key: Pause.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Insert">
+            <summary>Key: Insert.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Home">
+            <summary>Key: Home.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.PageUp">
+            <summary>Key: Page Up.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Delete">
+            <summary>Key: Delete.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.End">
+            <summary>Key: End.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.PageDown">
+            <summary>Key: Page Down.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.RightArrow">
+            <summary>Key: Right Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.LeftArrow">
+            <summary>Key: Left Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.DownArrow">
+            <summary>Key: Down Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.UpArrow">
+            <summary>Key: Up Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.NumLock">
+            <summary>Key: Num Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Divide">
+            <summary>Key: Keypad /.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Multiply">
+            <summary>Key: Keypad *.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Substract">
+            <summary>Key: Keypad -.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Add">
+            <summary>Key: Keypad +.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Enter">
+            <summary>Key: Keypad Enter.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D1">
+            <summary>Key: Keypad 1 or End.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D2">
+            <summary>Key: Keypad 2 or Down Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D3">
+            <summary>Key: Keypad 3 or Page Down.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D4">
+            <summary>Key: Keypad 4 or Left Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D5">
+            <summary>Key: Keypad 5.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D6">
+            <summary>Key: Keypad 6 or Right Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D7">
+            <summary>Key: Keypad 7 or Home.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D8">
+            <summary>Key: Keypad 8 or Up Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D9">
+            <summary>Key: Keypad 9 or Page Up.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_D0">
+            <summary>Key: Keypad 0 or Insert.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Keypad_Delete">
+            <summary>Key: Keypad . or Delete.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.NON_US_2">
+            <summary>Key: Not supported. Non-US keyboard character.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.Application">
+            <summary>Key: Application.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.LeftCtrl">
+            <summary>Key: Left Ctrl.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.LeftShift">
+            <summary>Key: Left Shift.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.LeftAlt">
+            <summary>Key: Left Alt.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.LeftGUI">
+            <summary>Key: Left GUI.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.RightCtrl">
+            <summary>Key: Right Ctrl.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.RightShift">
+            <summary>Key: Right Shift.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.RightAlt">
+            <summary>Key: Right Alt.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBClient.USBC_Key.RightGUI">
+            <summary>Key: Right GUI.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBClient.USBC_Keyboard">
+            <summary>
+            Creates USB Client Keyboard.
+            </summary>
+            <remarks>
+            Using this class, your platform can be a USB keyboard connected to PC. You can report pressed and released keys. Note that you cannot report more than 7 pressed keys at once. They must be released first.<br/>
+            </remarks>
+            <example>
+            The following will create a USB Keyboard and send "Hello world!" to PC every second.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.USBClient;
+using GHIElectronics.NETMF.Hardware;
+
+namespace USBClient_Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Check debug interface
+            if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
+                throw new InvalidOperationException("Current debug interface is USB. It must be changed to something else before proceeding. Refer to your platform user manual to change the debug interface.");
+
+            // Start keyboard
+            USBC_Keyboard kb = USBClientController.StandardDevices.StartKeyboard();
+
+            Debug.Print("Waiting to connect to PC...");
+
+            // Send "Hello world!" every second
+            while (true)
+            {
+                // Check if connected to PC
+                if (USBClientController.GetState() != USBClientController.State.Running)
+                {
+                    Debug.Print("Waiting to connect to PC...");
+                }
+                else
+                {
+                    // We need shift down for capital "H"
+                    kb.KeyDown(USBC_Key.LeftShift);
+                    kb.KeyTap(USBC_Key.H);
+                    kb.KeyUp(USBC_Key.LeftShift);
+
+                    // Now "ello world"
+                    kb.KeyTap(USBC_Key.E); 
+                    kb.KeyTap(USBC_Key.L); 
+                    kb.KeyTap(USBC_Key.L); 
+                    kb.KeyTap(USBC_Key.O); 
+                    kb.KeyTap(USBC_Key.Space);
+                    kb.KeyTap(USBC_Key.W); 
+                    kb.KeyTap(USBC_Key.O); 
+                    kb.KeyTap(USBC_Key.R);
+                    kb.KeyTap(USBC_Key.L);
+                    kb.KeyTap(USBC_Key.D); 
+
+                    // The "!"
+                    kb.KeyDown(USBC_Key.LeftShift);
+                    kb.KeyTap(USBC_Key.D1);
+                    kb.KeyUp(USBC_Key.LeftShift);
+
+                    // Send an enter key
+                    kb.KeyTap(USBC_Key.Enter);
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Keyboard.#ctor(GHIElectronics.NETMF.USBClient.USBC_Device,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="device">USBC device to attach to.</param>
+            <param name="interfaceName">Name of this USB interface.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Keyboard.KeyTap(GHIElectronics.NETMF.USBClient.USBC_Key)">
+            <summary>
+            Reports the key as pressed and then released.
+            </summary>
+            <param name="key">Key.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Keyboard.KeyUp(GHIElectronics.NETMF.USBClient.USBC_Key)">
+            <summary>
+            Reports that the Key is released.
+            </summary>
+            <param name="key">Key.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBClient.USBC_Keyboard.KeyDown(GHIElectronics.NETMF.USBClient.USBC_Key)">
+            <summary>
+            Reports that the key is pressed.
+            </summary>
+            <param name="key">Key.</param>
+        </member>
+    </members>
+</doc>

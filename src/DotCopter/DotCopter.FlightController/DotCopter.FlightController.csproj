@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AssemblyName>DotCopter.FlightController</AssemblyName>
+    <OutputType>Library</OutputType>
+    <RootNamespace>DotCopter.FlightController</RootNamespace>
+    <ProjectTypeGuids>{b69e3092-b931-443c-abe7-7e7b65f2a37f};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{844AAB6F-29E9-4CED-89A7-6031E0926BE1}</ProjectGuid>
+    <TargetFrameworkVersion>v4.1</TargetFrameworkVersion>
+    <NetMfTargetsBaseDir Condition="'$(NetMfTargetsBaseDir)'==''">$(MSBuildExtensionsPath32)\Microsoft\.NET Micro Framework\</NetMfTargetsBaseDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
+  <ItemGroup>
+    <Compile Include="AxesController.cs" />
+    <Compile Include="ControllerLoopSettings.cs" />
+    <Compile Include="ControllerWithThreading.cs" />
+    <Compile Include="Controller.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SPOT.Native">
+    </Reference>
+    <Reference Include="System.IO" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DotCopter.Avionics\DotCopter.Avionics.csproj">
+      <Project>{6D18BE7A-7F4E-4756-B5DB-100F1718E7D6}</Project>
+      <Name>DotCopter.Avionics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Commons\DotCopter.Commons.csproj">
+      <Project>{C3283CF0-C6E6-4544-9764-F0C3F7BE6AD3}</Project>
+      <Name>DotCopter.Commons</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.ControlAlgorithms.Implementations\DotCopter.ControlAlgorithms.Implementations.csproj">
+      <Project>{6E0F769A-4DED-4451-AA03-951D89743F25}</Project>
+      <Name>DotCopter.ControlAlgorithms.Implementations</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.ControlAlgorithms\DotCopter.ControlAlgorithms.csproj">
+      <Project>{CDF84595-3709-4FDB-9EC3-75A848FC0349}</Project>
+      <Name>DotCopter.ControlAlgorithms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Framework\DotCopter.Framework.csproj">
+      <Project>{ADF12587-A60F-4077-9D4B-40D3EE96EE40}</Project>
+      <Name>DotCopter.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Hardware\DotCopter.Hardware.csproj">
+      <Project>{38725121-EA4D-444E-BB6A-401F4999F156}</Project>
+      <Name>DotCopter.Hardware</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Messaging.Messages\DotCopter.Messaging.Messages.csproj">
+      <Project>{EA554D63-D03D-49A6-931B-B0603B20FB41}</Project>
+      <Name>DotCopter.Messaging.Messages</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
