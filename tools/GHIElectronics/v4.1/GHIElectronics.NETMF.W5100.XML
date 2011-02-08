@@ -1,0 +1,1518 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.W5100</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel">
+            <summary>
+            Specifies the protocol to which a socket configuration option (specified by the SocketOptionName enumeration) applies. 
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel.Socket">
+            <summary>
+            A value specifying that the socket options apply to all sockets.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel.IP">
+            <summary>
+            A value specifying that the socket options apply only to a socket that is using the Internet Protocol (IP).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel.IPv6">
+            <summary>
+            A value specifying that the socket options apply only to a socket that is using the IPv6 protocol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel.Tcp">
+            <summary>
+            A value specifying that the socket options apply only to a socket that is using the Transmission Control Protocol (TCP).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel.Udp">
+            <summary>
+            A value specifying that the socket options apply only to a socket that is using the User Datagram Protocol (UDP).
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.Socket">
+            <summary>
+            Creates and configures sockets for network communications. <br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <example>
+            This is a simple web server.  Given a request, it returns an HTML 
+            document.  The same document is returned for all requests and no parsing of 
+            the request is done. <br/>
+            This example is based on SimpleServer example code available with NETMF SDK example code.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+using GHIElectronics.NETMF.FEZ;
+using GHIElectronics.NETMF.Net;
+using GHIElectronics.NETMF.Net.Sockets;
+using GHIElectronics.NETMF.Net.NetworkInformation;
+using System.Text;
+using Socket = GHIElectronics.NETMF.Net.Sockets.Socket;
+
+/// <summary>
+/// This is a simple web server.  Given a request, it returns an HTML 
+/// document.  The same document is returned for all requests and no parsing of 
+/// the request is done.
+/// </summary>
+public static class MySocketServer
+{
+    public static void Main()
+    {
+        const Int32 c_port = 80;
+        byte[] ip = { 192, 168, 0, 200 };
+        byte[] subnet = { 255, 255, 255, 0 };
+        byte[] gateway = { 192, 168, 0, 1 };
+        byte[] mac = { 43, 185, 44, 2, 206, 127 };
+        WIZnet_W5100.Enable(SPI.SPI_module.SPI1, (Cpu.Pin)38, (Cpu.Pin)67,true); // WIZnet interface on FEZ Rhino (USBizi)
+        NetworkInterface.EnableStaticIP(ip, subnet, gateway, mac);
+        NetworkInterface.EnableStaticDns(new byte[] { 192, 168, 0, 1 });
+        Socket server = new Socket(AddressFamily.InterNetwork,
+        SocketType.Stream, ProtocolType.Tcp);
+        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, c_port);
+        server.Bind(localEndPoint);
+        server.Listen(1);
+
+        while (true)
+        {
+            // Wait for a client to connect.
+            Socket clientSocket = server.Accept();
+
+            // Process the client request.  true means asynchronous.
+            new ProcessClientRequest(clientSocket, true);
+        }
+    }
+
+    /// <summary>
+    /// Processes a client request.
+    /// </summary>
+    internal sealed class ProcessClientRequest
+    {
+        private Socket m_clientSocket;
+
+        /// <summary>
+        /// The constructor calls another method to handle the request, but can 
+        /// optionally do so in a new thread.
+        /// </summary>
+        /// <param name="clientSocket"></param>
+        /// <param name="asynchronously"></param>
+        public ProcessClientRequest(Socket clientSocket, Boolean asynchronously)
+        {
+            m_clientSocket = clientSocket;
+
+            if (asynchronously)
+                // Spawn a new thread to handle the request.
+                new Thread(ProcessRequest).Start();
+            else ProcessRequest();
+        }
+
+        /// <summary>
+        /// Processes the request.
+        /// </summary>
+        private void ProcessRequest()
+        {
+            const Int32 c_microsecondsPerSecond = 1000000;
+
+            // 'using' ensures that the client's socket gets closed.
+            using (m_clientSocket)
+            {
+                // Wait for the client request to start to arrive.
+                Byte[] buffer = new Byte[1024];
+                if (m_clientSocket.Poll(5 * c_microsecondsPerSecond,
+                    SelectMode.SelectRead))
+                {
+                    // If 0 bytes in buffer, then the connection has been closed, 
+                    // reset, or terminated.
+                    if (m_clientSocket.Available == 0)
+                        return;
+
+                    // Read the first chunk of the request (we don't actually do 
+                    // anything with it).
+                    Int32 bytesRead = m_clientSocket.Receive(buffer,
+                        m_clientSocket.Available, SocketFlags.None);
+
+                    // Return a static HTML document to the client.
+                    String s =
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<html><head><title>.NET Micro Framework Web Server on USBizi Chipset </title></head>" +
+                        "<body><bold><a href=\"http://www.tinyclr.com/\">Learn more about the .NET Micro Framework with FEZ by clicking here</a></bold></body></html>";
+                    byte[] buf = Encoding.UTF8.GetBytes(s);
+
+                    int offset = 0;
+                    int ret = 0;
+                    int len = file.Length;
+                    while (len > 0)
+                    {
+                        ret = m_clientSocket.Send(buf, offset, len, SocketFlags.None);
+                        len -= ret;
+                        offset += ret;
+                    }
+
+                    m_clientSocket.Close();
+                }
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.#ctor(GHIElectronics.NETMF.Net.Sockets.AddressFamily,GHIElectronics.NETMF.Net.Sockets.SocketType,GHIElectronics.NETMF.Net.Sockets.ProtocolType)">
+            <summary>
+            Initializes a new instance of the Socket class. 
+            </summary>
+            <param name="addressFamily">This parameter is ignored with W5100</param>
+            <param name="socketType">This parameter is ignored with W5100</param>
+            <param name="protocolType">A value of the ProtocolType enumeration specifying the communications protocol that the current socket uses.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.#ctor(GHIElectronics.NETMF.Net.Sockets.ProtocolType)">
+            <summary>
+            Used with DNS and DHCP only
+            </summary>
+            <param name="protocolType"></param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Bind(GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Associates a socket with a local endpoint.
+            </summary>
+            <remarks>
+            Use the Bind method if you need to use a specific local endpoint. You must call Bind before you can call the Listen method. You do not need to call Bind before using the Connect method unless you need to use a specific local endpoint. You can use the Bind method on both connection-oriented and connectionless protocols.<br/>
+            Before calling Bind, you must first create an IPEndPoint object to represent the local endpoint from which you intend to communicate data. If you do not care which local address is assigned, you can create an IPEndPoint object using IPAddress.Any as the address parameter, and the underlying service provider will assign the most appropriate network address. This might help simplify your application if you have multiple network interfaces. If you do not care which local port is used, you can create an IPEndPoint object using 0 (zero) as the port number. In this case, the service provider will assign an available port number between 1024 and 5000.<br/>
+            If you use the preceding approach, you can discover what local network address and port number have been assigned by using the LocalEndPoint property. If you are using a connection-oriented protocol, LocalEndPoint will not return the locally assigned network address until after you have made a call to the Connect method. If you are using a connectionless protocol, you will not have access to this information until you have completed a send or receive operation.
+            </remarks>
+            <param name="localEP">An EndPoint object that specifies the local endpoint.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Connect(GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Establishes a connection to a remote host. 
+            </summary>
+            <param name="remoteEP">An EndPoint object that represents the connection to the remote host. </param>
+            <remarks>
+            If you are using a connection-oriented protocol such as TCP, the Connect method synchronously establishes a network connection between the local endpoint (specified by the LocalEndPoint property) and the specified remote endpoint. If you are using a connectionless protocol, Connect establishes a default remote host. After you call Connect, you can send data to the remote device by using the Send method, or you can receive data from the remote device by using the Receive method.<br/>
+            If you are using a connectionless protocol such as UDP, you should NOT call Connect. You should use SendTo() and ReceiveFrom() instead.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Close">
+            <summary>
+            Closes the current socket connection and releases all resources associated with that connection. 
+            </summary>
+            <remarks>
+            The Close method closes the remote host connection and releases all managed and unmanaged resources associated with the socket that is represented by the current Socket object.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Listen(System.Int32)">
+            <summary>
+            Enables the current socket to listen for incoming connection attempts. 
+            </summary>
+            <param name="backlog">The maximum number of incoming connections that can be queued for acceptance.With W5100 can queue onlt one connection</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Accept">
+            <summary>
+            Creates a socket for a newly created connection. 
+            </summary>
+            <returns>A new Socket object that specifies the socket for the newly created connection. </returns>
+            <remarks>
+            The Accept method synchronously extracts the first pending connection request from the connection request queue of the listening socket, and then it creates and returns a new Socket object. You cannot use this returned Socket object to accept any additional connections from the connection queue. However, you can use the RemoteEndPoint property of the returned Socket object to identify the remote host's network address and port number.<br/>
+            Before calling the Accept method, you must first call the Listen method to listen for and queue incoming connection requests. 
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Send(System.Byte[],System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Sends data to a bound socket according to specified flags, beginning at a specified location in the buffer array. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="size">The size of the data to be sent, in bytes.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Send(System.Byte[],GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Sends all of the data currently in the buffer array to a bound socket, according to specified flags. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Send(System.Byte[])">
+            <summary>
+            Sends all of the data currently in the buffer array to a bound socket. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Send(System.Byte[],System.Int32,System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Sends data to a bound socket according to specified flags, beginning at a specified location in the buffer array. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="offset">The location, relative to the beginning of the buffer array, at which the reading of data to be sent is to begin.</param>
+            <param name="size">The size of the data to be sent, in bytes.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SendTo(System.Byte[],System.Int32,System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Sends data to a specified endpoint according to specified flags, beginning at a specified location in the buffer array. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="offset">The location, relative to the beginning of the buffer array, at which the reading of data to be sent is to begin.</param>
+            <param name="size">The size of the data to be sent, in bytes.</param>
+            <param name="socketFlags">Ignored.</param>
+            <param name="remoteEP">An EndPoint object that specifies the address of the destination socket.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SendTo(System.Byte[],System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Sends data to a specified endpoint, according to specified flags.
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="size">The size of the data to be sent, in bytes.</param>
+            <param name="socketFlags">Ignored.</param>
+            <param name="remoteEP">An EndPoint object that specifies the address of the destination socket.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SendTo(System.Byte[],GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Sends all of the data currently in the buffer array to a specified endpoint, according to specified flags. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="socketFlags">Ignored.</param>
+            <param name="remoteEP">An EndPoint object that specifies the address of the destination socket.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SendTo(System.Byte[],GHIElectronics.NETMF.Net.EndPoint)">
+            <summary>
+            Sends all of the data currently in the buffer array to a specified endpoint. 
+            </summary>
+            <param name="buffer">An array that contains the data to be sent.</param>
+            <param name="remoteEP">An EndPoint object that specifies the address of the destination socket.</param>
+            <returns>The number of bytes actually sent, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Receive(System.Byte[],System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Receives data from a bound socket, according to specified flags, and places the data in a buffer array. 
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="size">The size of the buffer array, in bytes. If the number of bytes received is greater than the size of the buffer array, the data is truncated so that it fits in the array.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Receive(System.Byte[],GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Receives all of the data currently available from a bound socket, according to specified flags, and places the data in a buffer array.
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Receive(System.Byte[])">
+            <summary>
+            Receives all of the data currently available from a bound socket and places the data in a buffer array. 
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Receive(System.Byte[],System.Int32,System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags)">
+            <summary>
+            Receives data from a bound socket, according to specified flags, and places the data in a buffer array, beginning at a specified location in the buffer. 
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="offset">The location, relative to the beginning of the buffer array, where the storing of received data is to begin.</param>
+            <param name="size">The size, in bytes, of the buffer array. If the number of bytes received is greater than the size of the buffer array, the data is truncated so that it fits in the array.</param>
+            <param name="socketFlags">Ignored.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.ReceiveFrom(System.Byte[],System.Int32,System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint@)">
+            <summary>
+            Receives data from an unbound socket, according to specified flags, and places the data in a buffer array, beginning at a specified location in the buffer. This method also gets the data's endpoint. 
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="offset">The location, relative to the beginning of the buffer array, where the storing of received data is to begin.</param>
+            <param name="size">The size of the buffer array, in bytes. If the number of bytes received is greater than the size of the buffer array, the data is truncated so that it fits in the array.</param>
+            <param name="socketFlags">Ignored</param>
+            <param name="remoteEP">An EndPoint object that, when this method returns a value, specifies the address of the socket from from which the data was received.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.ReceiveFrom(System.Byte[],System.Int32,GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint@)">
+            <summary>
+            Receives data from an unbound socket, according to specified flags, and places the data in a buffer array. This method also gets the data's endpoint.
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="size">The size of the buffer array, in bytes. If the number of bytes received is greater than the size of the buffer array, the data is truncated so that it fits in the array.</param>
+            <param name="socketFlags">Ignored.</param>
+            <param name="remoteEP">An EndPoint object that, when this method returns a value, specifies the address of the socket from which the data was received.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.ReceiveFrom(System.Byte[],GHIElectronics.NETMF.Net.Sockets.SocketFlags,GHIElectronics.NETMF.Net.EndPoint@)">
+            <summary>
+            Receives all of the data currently available from an unbound socket, according to specified flags, and places the data in a buffer array. This method also gets the data's endpoint.
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="socketFlags">Ignored.</param>
+            <param name="remoteEP">An EndPoint object that, when this method returns a value, specifies the address of the socket from which the data was received.</param>
+            <returns>The number of bytes received, if the call was successful; otherwise, -1.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.ReceiveFrom(System.Byte[],GHIElectronics.NETMF.Net.EndPoint@)">
+            <summary>
+            Receives all of the data currently available from an unbound socket, places the data in a buffer array, and gets the data's endpoint. 
+            </summary>
+            <param name="buffer">An array in which the received data is placed.</param>
+            <param name="remoteEP">An EndPoint object that, when this method's returns a value, specifies the address of the socket from which the data was received.</param>
+            <returns></returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SetSocketOption(GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel,GHIElectronics.NETMF.Net.Sockets.SocketOptionName,System.Int32)">
+            <summary>
+            Not Supprted.
+            </summary>
+            <param name="optionLevel">Ignored</param>
+            <param name="optionName">Ignored</param>
+            <param name="optionValue">Ignored</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SetSocketOption(GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel,GHIElectronics.NETMF.Net.Sockets.SocketOptionName,System.Boolean)">
+            <summary>
+            Not Supprted.
+            </summary>
+            <param name="optionLevel">Ignored</param>
+            <param name="optionName">Ignored</param>
+            <param name="optionValue">Ignored</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.SetSocketOption(GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel,GHIElectronics.NETMF.Net.Sockets.SocketOptionName,System.Byte[])">
+            <summary>
+            Not Supprted.
+            </summary>
+            <param name="optionLevel">Ignored</param>
+            <param name="optionName">Ignored</param>
+            <param name="optionValue">Ignored</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.GetSocketOption(GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel,GHIElectronics.NETMF.Net.Sockets.SocketOptionName)">
+            <summary>
+            Not Supprted.
+            </summary>
+            <param name="optionLevel">Ignored</param>
+            <param name="optionName">Ignored</param>
+            <returns>Ignored</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.GetSocketOption(GHIElectronics.NETMF.Net.Sockets.SocketOptionLevel,GHIElectronics.NETMF.Net.Sockets.SocketOptionName,System.Byte[])">
+            <summary>
+            Not Supprted.
+            </summary>
+            <param name="optionLevel">Ignored</param>
+            <param name="optionName">Ignored</param>
+            <param name="val">Ignored</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Poll(System.Int32,GHIElectronics.NETMF.Net.Sockets.SelectMode)">
+            <summary>
+            Determines the read/write status of the current socket for a specified polling mode. 
+            </summary>
+            <param name="microSeconds">The amount of time, in microseconds, that you want the application to wait for a response. Set this parameter to a negative integer if you want the application to wait indefinitely for a response.</param>
+            <param name="mode">A value of the SelectMode enumeration that specifies the polling mode whose read/write status you want to retrieve.</param>
+            <returns>The return values for the various polling modes are listed in the following:<br/>
+            SelectRead:<br/>
+            true if:<br/>
+            •The Listen method has been called and a connection is pending.<br/>
+            •Data is available for reading.<br/>
+            •The connection has been closed, reset, or terminated.<br/>
+            Otherwise, false. <br/>
+            SelectWrite:<br/>
+            true if:<br/>
+            •A Connect method call has been processed, and the connection has succeeded.<br/>
+            •Data can be sent.<br/>
+            Otherwise, false. <br/>
+            SelectError: Not supported with W5100<br/>
+            </returns>
+            <remarks>
+            The Poll method will check the read/write state of the socket. Specify SelectMode.SelectRead for the mode parameter to determine whether the socket is readable. Specify the SelectMode.SelectWrite mode to determine whether the socket is writable. SelectMode.SelectError mode is not supported with W5100.<br/><br/>
+            The Poll method returns when the time period specified by the microSeconds parameter elapses. Note that Poll blocks execution of other methods until it returns.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Dispose(System.Boolean)">
+            <summary>
+            Releases the unmanaged resources used by the current socket, and optionally releases the managed resources also. 
+            </summary>
+            <param name="disposing">true to release both the managed and unmanaged resources used by the current socket; false to release only the unmanaged resources.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.System#IDisposable#Dispose">
+            <summary>
+            Releases all resources used by the current socket. 
+            </summary>
+            <remarks>
+            This method supports the .NET Micro Framework infrastructure and is not intended to be used directly from your code.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Sockets.Socket.Finalize">
+            <summary>
+            Destructor.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Sockets.Socket.Available">
+            <summary>
+            Gets the amount of data that has been received from the network and is available to be read. 
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Sockets.Socket.LocalEndPoint">
+            <summary>
+            Gets the local endpoint that the current socket is using for communications.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Sockets.Socket.RemoteEndPoint">
+            <summary>
+            Gets the remote endpoint with which the current socket is communicating.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Sockets.Socket.ReceiveTimeout">
+            <summary>
+            Gets or sets a value that specifies the amount of time after which a synchronous Receive call will time out. (Not supported)
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Sockets.Socket.SendTimeout">
+            <summary>
+            Gets or sets a value that specifies the amount of time after which a synchronous Send call will time out. (Not supported)
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.ProtocolType">
+            <summary>
+            Specifies the communications protocol that a Socket object uses to transfer data.<br/>
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IP">
+            <summary>
+            The Internet Protocol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6HopByHopOptions">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Icmp">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Igmp">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Ggp">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv4">
+            <summary>
+            The Internet Protocol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Tcp">
+            <summary>
+            The Transmission Control Protocol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Pup">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Udp">
+            <summary>
+            The User Datagram Protocol
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Idp">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6RoutingHeader">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6FragmentHeader">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPSecEncapsulatingSecurityPayload">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPSecAuthenticationHeader">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IcmpV6">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6NoNextHeader">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.IPv6DestinationOptions">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.ND">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Raw">
+            <summary>
+            The raw IP-packet protocol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Unspecified">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Ipx">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Spx">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.SpxII">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.ProtocolType.Unknown">
+            <summary>
+            Not Supported.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.IPAddress">
+            <summary>
+            Provides members you can use when working with Internet Protocol (IP) addresses. <br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.IPAddress.Any">
+            <summary>
+            Any IP address (0.0.0.0)
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.#ctor(System.Int64)">
+            <summary>
+            Initializes a new instance of the IPAddress class, using a specified Internet Protocol (IP) address.
+            </summary>
+            <param name="newAddress"></param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.#ctor(System.Byte[])">
+            <summary>
+            Initializes a new instance of the IPAddress class, using a specified Internet Protocol (IP) address.
+            </summary>
+            <param name="newAddressBytes"></param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.Equals(System.Object)">
+            <summary>
+            Compares a specified IP address with the current IP address.
+            </summary>
+            <param name="obj">An object that specifies the IP address to be compared with the current IP address.</param>
+            <returns>true if the two IP addresses are equal; otherwise, false.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.GetHashCode">
+            <summary>
+            Serves as a hash function for a particular type. 
+            </summary>
+            <returns>A hash code for the current object.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.GetAddressBytes">
+            <summary>
+            Provides a copy of the IPAddress as an array of bytes. 
+            </summary>
+            <returns>A copy of the IPAddress as an array of bytes. </returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.Parse(System.String)">
+            <summary>
+            Parses an IP address. 
+            </summary>
+            <param name="ipString">Holds an IP address in a string.</param>
+            <returns>The parsed IP address.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPAddress.ToString">
+            <summary>
+            ToString
+            </summary>
+            <returns>IP address in this format "x.x.x.x"</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Dns">
+            <summary>
+            Provides simple domain name resolution functionality.<br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <remarks>
+            The Dns class is a static class that retrieves information about a specific host from the Internet Domain Name System (DNS). <br/>
+            The host information from the DNS query is returned in an IPHostEntry object. If the specified host has more than one entry in the DNS database, the IPHostEntry object contains onlt one IP address and alias.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Dns.GetHostEntry(System.String)">
+            <summary>
+            Resolves an Internet host name to an IPHostEntry object.
+            </summary>
+            <param name="hostNameOrAddress"> The name or IP address of a specific Internet host.</param>
+            <returns>An IPHostEntry object that contains address information about the Internet host specified in the hostNameOrAddress parameter. </returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface">
+            <summary>
+            Provides information about W5100 interface and enables applications to control them.<br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <remarks>
+            With this class, your applications can retrieve information about a device's network interface. They can also configure the interface as appropriate. For example, they can enable your device to obtain a DNS server address automatically, renew DHCP leases, or set the device to use a specific static IP address. 
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.EnableStaticIP(System.Byte[],System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            Enables an application to set and use a static IP address.
+            </summary>
+            <param name="SourceIP">Holds the IP address to use.</param>
+            <param name="SubnetMask">Contains the address's subnet mask.</param>
+            <param name="Gateway">Specifies the address of the gateway.</param>
+            <param name="MAC">Specifies the physical of the gateway.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.EnableStaticDns(System.Byte[])">
+            <summary>
+            Enables a network interface to use a specific DNS server address. 
+            </summary>
+            <param name="DnsServer">Holds the DNS server address</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.EnableDhcp">
+            <summary>
+            Enables the Dynamic Host Configuration Protocol (DHCP) for service with this network interface. 
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.EnableDynamicDns">
+            <summary>
+            Enables a network interface to obtain a DNS server address automatically. 
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.ReleaseDhcpLease">
+            <summary>
+            Releases the DHCP lease, which releases the IP address bound to a DHCP-enabled network interface. 
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.RenewDhcpLease">
+            <summary>
+            Renews a DHCP lease, which renews the IP address on a DHCP-enabled network interface.  
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.IPAddress">
+            <summary>
+            Holds the IP address of the network interface.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.GatewayAddress">
+            <summary>
+            Contains the gateway address.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.SubnetMask">
+            <summary>
+            Retrieves the network interface's subnet mask.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.PhysicalAddress">
+            <summary>
+            Gets the Media Access Control (MAC) address for a network interface .
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.NetworkInformation.NetworkInterface.DnsServer">
+            <summary>
+            Holds the DNS server address.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.AddressFamily">
+            <summary>
+             Specifies the address families that an instance of the GHIElectronics.NETMF.Net.Sockets class can use.<br/>
+             <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Unknown">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Unspecified">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Unix">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.InterNetwork">
+            <summary>
+             internetwork:IP, UDP, TCP, etc.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.ImpLink">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Pup">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Chaos">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.NS">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Ipx">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Iso">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Osi">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Ecma">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.DataKit">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Ccitt">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Sna">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.DecNet">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.DataLink">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Lat">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.HyperChannel">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.AppleTalk">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.NetBios">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.VoiceView">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.FireFox">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Banyan">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Atm">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.InterNetworkV6">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Cluster">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Ieee12844">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Irda">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.NetworkDesigners">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.AddressFamily.Max">
+            <summary>
+             Not Supported.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.SelectMode">
+            <summary>
+            Poll Select Mode
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SelectMode.SelectRead">
+            <summary>
+            SelectRead.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SelectMode.SelectWrite">
+            <summary>
+            SelectWrite.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SelectMode.SelectError">
+            <summary>
+            SelectError (Not Supported).
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.WIZnet_W5100">
+            <summary>
+            This class provides setup features to WIZnet W5100 Ethernet TCP/IP Chip.<vr/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <strong>Important note:</strong> We provide dedicated Microsoft's like Socket libraries for W5100 for more code optimiziation and to provide an easier interface for the users.<br/>
+            <br/>
+            Networking and Sockets features are exposed through the following name spaces included with GHIElectronics.NETMF.W5100.dll assembly<br/>
+            <c>GHIElectronics.NETMF.Net.NetworkInformation</c><br/>
+            <c>GHIElectronics.NETMF.Net</c><br/>
+            <c>GHIElectronics.NETMF.Sockets</c><br/>
+            <br/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.WIZnet_W5100.Enable(Microsoft.SPOT.Hardware.SPI.SPI_module,Microsoft.SPOT.Hardware.Cpu.Pin,Microsoft.SPOT.Hardware.Cpu.Pin,System.Boolean)">
+            <summary>
+             Hooks and Initializes WIZnet W5100 hardware interface at the low level.
+            </summary>
+            <remarks>
+            This Method enables the network interface dynamically. There is no need to restart the system to get the interface active.<br/>
+            However, the application MUST enable the interface every time the system runs since enabling interface configurations are not saved permanently.<br/>
+            </remarks>
+            <param name="spi">SPI module.</param>
+            <param name="CS">Chip Select pin.</param>
+            <param name="Reset">External Reset pin.</param>
+            <param name="ReserveSocket">By setting this parameter to true, the system will reserve one socket out of the four socket reources for internal use to insure smooth service for DNS and DHCP. </param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.WIZnet_W5100.ReintializeNetworking">
+            <summary>
+            Reinitializing W5100 chip and TCP/IP stack
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.W5100.RMASK">
+            Variable for Tx buffer MASK in each channel 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.W5100.SSIZE">
+            Variable for Rx buffer MASK in each channel 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.W5100.RSIZE">
+            Max Tx buffer size by each channel 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.W5100.SBUFBASEADDRESS">
+            Max Rx buffer size by each channel 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.W5100.RBUFBASEADDRESS">
+            Tx buffer base address by each channel 
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.W5100.Init(System.Byte,System.Byte)">
+            tx_size Tx memory size (00 - 1KByte, 01- 2KBtye, 10 - 4KByte, 11 - 8KByte) 
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.W5100.Get_TX_FSR(System.Byte)">
+            <summary>
+            This gives free buffer size of transmit buffer. This is the data size that user can transmit.
+            User shuold check this value first and control the size of transmitting data
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.W5100.getSn_RX_RSR(System.Byte)">
+            <summary>
+            This gives size of received data in receive buffer. 
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.W5100.Registers">
+            Rx buffer base address by each channel 
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.SocketOptionName">
+            <summary>
+            Specifies the configuration options that control the behavior of a socket. 
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Debug">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.AcceptConnection">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ReuseAddress">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.KeepAlive">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.DontRoute">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Broadcast">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.UseLoopback">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Linger">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.OutOfBandInline">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.DontLinger">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ExclusiveAddressUse">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.SendBuffer">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ReceiveBuffer">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.SendLowWater">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ReceiveLowWater">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.SendTimeout">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ReceiveTimeout">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Error">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Type">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.MaxConnections">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.IPOptions">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.HeaderIncluded">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.TypeOfService">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.IpTimeToLive">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.MulticastInterface">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.MulticastTimeToLive">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.MulticastLoopback">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.AddMembership">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.DropMembership">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.DontFragment">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.AddSourceMembership">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.DropSourceMembership">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.BlockSource">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.UnblockSource">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.PacketInformation">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.HopLimit">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.NoDelay">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.BsdUrgent">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.Expedited">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.NoChecksum">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.ChecksumCoverage">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.UpdateAcceptContext">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketOptionName.UpdateConnectContext">
+            <summary>
+            Ignore.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.EndPoint">
+            <summary>
+            Provides a constructor and methods for creating network connection points (endpoints) and serializing endpoint information.<br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.EndPoint.Create(GHIElectronics.NETMF.Net.SocketAddress)">
+            <summary>
+            Creates a new instance of the EndPoint class from serialized information. 
+            </summary>
+            <param name="socketAddress">A SocketAddress object that stores the endpoint's information in a serial format.</param>
+            <returns>A new EndPoint object that is initialized from the specified SocketAddress object.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.SocketFlags">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.None">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.OutOfBand">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.Peek">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.DontRoute">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.MaxIOVectorLength">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.Truncated">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.ControlDataTruncated">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.Broadcast">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.Multicast">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketFlags.Partial">
+            <summary>
+            Ignored.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.IPHostEntry">
+            <summary>
+            Constitutes a container class for information about an Internet host. <br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <remarks>
+            The IPHostEntry class associates a Domain Name System (DNS) host name with an array of IP addresses.<br/>
+            Use the IPHostEntry class as a helper class with the Dns class.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.IPHostEntry.HostName">
+            <summary>
+            Gets the Domain Name System (DNS) name of a specific host server.
+            </summary>
+            <remarks>
+            A string that contains the primary host name for the server.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.IPHostEntry.AddressList">
+            <summary>
+            Gets a list of Internet Protocol (IP) addresses that are associated with a specific host server.
+            </summary>
+            <remarks>
+            An array of IPAddress objects, each of which contains an IP address that resolves to the host name, which is specified by the HostName property.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.IPEndPoint">
+            <summary>
+            Represents a connection point (endpoint) on a network as an Internet Protocol (IP) address and a port number.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.#ctor(System.Int64,System.Int32)">
+            <summary>
+            Initializes a new instance of the IPEndPoint class from a specified port number and address, with the address specified as an integer.
+            </summary>
+            <param name="address">The Internet Protocol (IP) address of a specific Internet host.</param>
+            <param name="port">The port number associated with a specific IP address, or 0 (zero) to specify any available port. Note that the port parameter value is in host order.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.#ctor(GHIElectronics.NETMF.Net.IPAddress,System.Int32)">
+            <summary>
+            Initializes a new instance of the IPEndPoint class from a specified port number and address, with the address specified as an IPAddress object.
+            </summary>
+            <param name="address">An IPAddress object that specifies the Internet Protocol (IP) address of a specific Internet host.</param>
+            <param name="port">The port number associated with a specific IP address, or 0 (zero) to specify any available port. Note that the port parameter value is in host order.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.GetHashCode">
+            <summary>
+            Serves as a hash function for a particular type. 
+            </summary>
+            <returns>A hash code for the current object.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.Create(GHIElectronics.NETMF.Net.SocketAddress)">
+            <summary>
+            Creates a new instance of the IPEndPoint class from serialized information. 
+            </summary>
+            <param name="socketAddress">A SocketAddress object that stores the new endpoint's information in a serial format.</param>
+            <returns>A new IPEndPoint object that is initialized from the specified SocketAddress object.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.ToString">
+            <summary>
+            Converts an IPEndpoint to a string. <br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+            <returns>The string containing the IPEndpoint information.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.IPEndPoint.Equals(System.Object)">
+            <summary>
+            Tests an IPEndPoint to see if it is equal to the current IPEndPoint. 
+            </summary>
+            <param name="obj">Holds the end point to compare.</param>
+            <returns>true if the endpoints are equal; otherwise false. </returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.IPEndPoint.Address">
+            <summary>
+            Gets the Internet Protocol (IP) address of the current endpoint.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.IPEndPoint.Port">
+            <summary>
+            Gets the port number of the current endpoint.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.SocketAddress">
+            <summary>
+            Represents a network connection point (endpoint) in serialized form. More specifically, the SocketAddress class stores the endpoint's information in a serial format. <br/>
+            <strong>IMPORTANT: Use this class only with WIZnet W5100 Ethernet TCP/IP Chip.</strong>
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.SocketAddress.#ctor(GHIElectronics.NETMF.Net.Sockets.AddressFamily,System.Int32)">
+            <summary>
+            Initializes a new instance of the SocketAddress class. 
+            </summary>
+            <param name="family">A value of the AddressFamily enumeration specifying the addressing scheme that is used to resolve the address.</param>
+            <param name="size">The number of bytes to be allocated for the underlying buffer, which is used to store the address information. Two bytes of the buffer are used to store the value of the family parameter.</param>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.SocketAddress.Family">
+            <summary>
+            Gets the address family for the current address.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.SocketAddress.Size">
+            <summary>
+            Gets the underlying buffer size of the SocketAddress. 
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.SocketAddress.Item(System.Int32)">
+            <summary>
+            Gets or sets the specified index element in the underlying buffer.
+            </summary>
+            <param name="offset">Holds the array index element of the desired information.</param>
+            <returns></returns>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.IR_val.Sn_IR_TIMEOUT">
+            complete sending 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.IR_val.Sn_IR_RECV">
+            assert timeout 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.IR_val.Sn_IR_DISCON">
+            receiving data 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.IR_val.Sn_IR_CON">
+            closed socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_INIT">
+            closed 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_LISTEN">
+            init state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_SYNSENT">
+            listen state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_SYNRECV">
+            connection state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_ESTABLISHED">
+            connection state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_FIN_WAIT">
+            success to connect 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_CLOSING">
+            closing state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_TIME_WAIT">
+            closing state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_CLOSE_WAIT">
+            closing state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_LAST_ACK">
+            closing state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_UDP">
+            closing state 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_IPRAW">
+            udp socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_MACRAW">
+            ip raw mode socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.SR_val.SOCK_PPPOE">
+            mac raw mode socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_LISTEN">
+            initialize or open socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_CONNECT">
+            wait connection request in tcp mode(Server mode) 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_DISCON">
+            send connection request in tcp mode(Client mode) 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_CLOSE">
+            send closing reqeuset in tcp mode 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_SEND">
+            close socket 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_SEND_MAC">
+            updata txbuf pointer, send data 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_SEND_KEEP">
+            send data with MAC address, so without ARP process 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.CR_val.Sn_CR_RECV">
+             send keep alive message 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.Protocol.UDP">
+            TCP 
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.SocketNative.Protocol.IPRAW">
+            UDP 
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Sockets.SocketType">
+            <summary>
+            Specifies the socket type, which defines the capabilities of a socket that is used in network communications. 
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Stream">
+            <summary>
+            A socket that supports reliable, two-way, connection-based byte streams without the duplication of data and without preservation of boundaries. A socket of this type communicates with a single peer and requires a remote host connection before communication can begin. The Stream socket type uses the InterNetwork address family and the Transmission Control Protocol (TCP).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Dgram">
+            <summary>
+            A socket that supports datagrams, which are connectionless, unreliable messages of a fixed (typically small) maximum length. Messages might be lost or duplicated and might arrive out of order. A socket of the Dgram type requires no connection before sending and receiving data, and it can communicate with multiple peers. The Dgram socket type uses the InterNetwork address family and the User Datagram Protocol (UDP).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Raw">
+            <summary>
+            A socket that supports access to the underlying transport protocol. The Raw socket type supports communication that uses protocols such as Internet Control Message Protocol (ICMP) and Internet Group Management Protocol (IGMP). Your application must provide a complete Internet Protocol (IP) header when sending data. Received datagrams return with the IP header and options intact.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Rdm">
+            <summary>
+            A socket that supports connectionless, message-oriented, reliably delivered messages (RDMs) and preserves message boundaries in data. When you use the Rdm socket type, messages arrive unduplicated and in order. Furthermore, the sender is notified if messages are lost. If you initialize a socket with the Rdm socket type, you do not need a remote host connection before sending and receiving data. The Rdm socket type also enables you to communicate with multiple peers.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Seqpacket">
+            <summary>
+            A socket that provides connection-oriented and reliable two-way transfer of ordered byte streams across a network. The Seqpacket socket type does not duplicate data, and it preserves boundaries within the data stream. A socket of the Seqpacket type communicates with a single peer and requires a remote host connection before communication can begin.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.Sockets.SocketType.Unknown">
+            <summary>
+            A socket of an unknown type.
+            </summary>
+        </member>
+    </members>
+</doc>

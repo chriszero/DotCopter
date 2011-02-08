@@ -1,0 +1,828 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Net</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Net.WiFi">
+            <summary>
+            This class provides setup features to control the WiFi connections.
+            </summary>
+            <remarks>
+            <strong>Important note:</strong> Currently TCP/IP stack can handle only one network interface at the same time.
+            For instance, if WiFi is enabled,Ethernet and PPP will be unhooked with the TCP/IP stack.<br/>
+            <br/>
+            Other general WiFi settings are available through the following classes:<br/>
+            <c>Microsoft.SPOT.Net.NetworkInformation</c><br/>
+            <c>Microsoft.SPOT.Net.NetworkInformation.NetworkInterface</c><br/>
+            <c>Microsoft.SPOT.Net.NetworkInformation.Wireless80211</c><br/>
+            Network availability event handler is also available through <c>Microsoft.SPOT.Net.NetworkInformation.NetworkChange</c> class.<br/>
+            <br/>
+            Supported WiFi Settings:<br/>
+            1. <strong>Radio:</strong> 801.11b<br/>
+            2. <strong>SSID:</strong> string<br/>
+            3. <strong>Authentication:</strong> None, Open or Shared.<br/>
+            4. <strong>Encryption:</strong><br/>
+                <br/>
+                <strong>WEP:</strong> Use only the first Network Key.<br/>
+                64-Bit:<br/>
+                    MaxNetworkKeyLength = 8 bytes (64-Bit in MFDeploy)<br/>
+                    NetworkKey: 5 Bytes. (11 Hex digits in MFDeploy)<br/>
+                128-Bit:<br/>
+                    MaxNetworkKeyLength = 16 bytes (64-Bit in MFDeploy)<br/>
+                    NetworkKey: 13 Bytes. (26 Hex digits in MFDeploy)<br/>
+                <br/>
+                <strong>WPA or WPA2:</strong><br/>
+                Passphrase: string<br/>
+                <br/>
+                <strong>WPA-PSK:</strong> Fill in pre-calculated 256-bit PSK:<br/>
+                You may use this tool as an example to calculate PSK:<br/>
+                <a href=" http://www.wireshark.org/tools/wpa-psk.html">256-bit PSK calculator.</a><br/>
+                MaxNetworkKeyLength = 32 bytes (256-Bit in MFDeploy)<br/>
+                NetworkKey: 32 Bytes. (64 Hex digits in MFDeploy)
+                </remarks>
+                
+            <example>
+            This example enables WiFi Interface, sets the WiFi options and retrieves an IP address lease from DHCP server.
+            <code>
+<![CDATA[
+/// Add these libraries to your project's References
+/// System
+/// Microsoft.SPOT.Hardware
+/// Microsoft.SPOT.Net
+/// GHIElectronics.NETMF.System
+/// GHIElectronics.NETMF.Net
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Net.NetworkInformation;
+using GHIElectronics.NETMF.Net;
+using Microsoft.SPOT.Hardware;
+using System.Net;
+
+namespace WiFi_Example4._0
+{
+    public class Program
+    {
+        static public bool wifi_event = false;
+        static public bool wifi_last_status = false;
+        static public bool network_is_read = false;
+
+        static public ManualResetEvent NetworkAvailablityBlocking = null;
+
+        public static void Main()
+        {
+            NetworkChange.NetworkAvailabilityChanged += new NetworkAvailabilityChangedEventHandler(NetworkChange_NetworkAvailabilityChanged);
+            if (!WiFi.IsEnabled)
+            {
+                //WiFi.Enable(SPI.SPI_module.SPI1, (Cpu.Pin)11, (Cpu.Pin)29);// ChipworkX DevSys
+                WiFi.Enable(SPI.SPI_module.SPI2, (Cpu.Pin)33, (Cpu.Pin)19);// EMX DevSys
+                //WiFi.Enable(SPI.SPI_module.SPI1, (Cpu.Pin)28, (Cpu.Pin)26);// EM DevSys
+
+            }
+
+            // WiFi settings
+            NetworkInterface[] netif = NetworkInterface.GetAllNetworkInterfaces();
+            Wireless80211 WiFiSettings = null;
+            for (int index = 0; index < netif.Length; ++index)
+            {
+                if (netif[index] is Wireless80211)
+                {
+                    WiFiSettings = (Wireless80211)netif[index];
+
+                }
+            }
+
+            if (WiFiSettings.Ssid != "AP-SSID")
+            {
+                WiFiSettings.Ssid = "AP-SSID";
+                WiFiSettings.PassPhrase = "passphrase";
+                WiFiSettings.Encryption = Wireless80211.EncryptionType.WPA;
+                Wireless80211.SaveConfiguration(new Wireless80211[] { WiFiSettings }, false);
+            }
+            NetworkAvailablityBlocking = new ManualResetEvent(false);
+            if (!WiFi.IsLinkConnected)
+            {
+                Debug.Print("Waiting for WiFi link!");
+                NetworkAvailablityBlocking.Reset();
+                while (!NetworkAvailablityBlocking.WaitOne(5000, false))
+                {
+                    if (!WiFi.IsLinkConnected)
+                    {
+                        Debug.Print("WiFi link is not available yet! Wrong AP settings?");
+                        Debug.Print("Still waiting.");
+                    }
+                    else
+                        break;
+                }
+            }
+            Debug.Print("WiFi link is ready!");
+
+            Debug.Print("Enable DHCP");
+            try
+            {
+                if (!WiFiSettings.IsDhcpEnabled)
+                    WiFiSettings.EnableDhcp();// This function is blocking
+                else
+                {
+                    WiFiSettings.RenewDhcpLease();// This function is blocking
+                }
+                network_is_read = true;
+                Debug.Print("Network settings:");
+                Debug.Print("IP Address: " + WiFiSettings.IPAddress);
+                Debug.Print("Subnet Mask: " + WiFiSettings.SubnetMask);
+                Debug.Print("Default Getway: " + WiFiSettings.GatewayAddress);
+                Debug.Print("DNS Server: " + WiFiSettings.DnsAddresses[0]);
+            }
+            catch
+            {
+                Debug.Print("DHCP Faild");
+            }
+
+            Debug.Print("Test DNS");
+            try
+            {
+                IPHostEntry myIP = Dns.GetHostEntry("www.ghielectronics.com");
+
+                if (myIP != null)
+                {
+                    Debug.Print(myIP.HostName + ": " + myIP.AddressList[0].ToString());
+                }
+            }
+            catch
+            {
+                Debug.Print("Faild to Get the host entry of the FQN from DNS server!");
+            }
+
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+
+        // This call back will be called when any change occures on Ethernet cable connection or WiFi physical link.
+        // Also it reports PPP connection status if PPP is enabled.
+        static void NetworkChange_NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
+        {
+            if (e.IsAvailable)
+            {
+                if (WiFi.IsLinkConnected)
+                {
+                    if (wifi_last_status != true)
+                    {
+                        wifi_last_status = true;
+                        NetworkAvailablityBlocking.Set();
+                    }
+                }
+            }
+            else
+            {
+                if (!WiFi.IsLinkConnected)
+                {
+                    if (wifi_last_status != false)
+                    {
+                        wifi_last_status = false;
+                        network_is_read = false;
+                    }
+                }
+            }
+        }
+
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.WiFi.Enable(Microsoft.SPOT.Hardware.SPI.SPI_module,Microsoft.SPOT.Hardware.Cpu.Pin,Microsoft.SPOT.Hardware.Cpu.Pin)">
+            <summary>
+            Hooks TCP/IP stack to WiFi interface and WiFi Module ZG2100.<br/>
+            </summary>
+            <remarks>
+            This Method enables the network interface dynamically. There is no need to restart the system to get the interface active.<br/>
+            Furthermore, there is no need to enable the interface every time the system runs since enabling interface becomes permanent unless Ethernet interface is enabled back.<br/>
+            Executing this method unhooks the TCP/IP stack from other Network interfaces such as Ethernet or PPP.<br/>
+            It is recommended to close all sockets/connections before executing this method, otherwise they will be lost.
+            </remarks>
+            <param name="spi">SPI module.</param>
+            <param name="CS">Chip Select pin.</param>
+            <param name="ExtInt">External Interrupt pin.</param>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.WiFi.IsEnabled">
+            <summary>
+            Checks if WiFi interface is currently enabled or not.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.WiFi.IsLinkConnected">
+            <summary>
+            Checks WiFi link status.
+            </summary>
+            <remarks>WiFi interface must be enabled at lease once. i.e. User can read this property if other interface is enabled after WiFi, like PPP.<br/>
+            This is useful when user needs the system to sense WiFi network availablity while having PPP interface enabled and runing, to switch back to WiFi</remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.PPP">
+            <summary>
+            This class provides setup features to control the PPP connections.
+            </summary>
+            <remarks>
+            <strong>Important note:</strong> Currently TCP/IP stack can handle only one network interface at the same time.
+            For instance, if PPP is enabled, Ethernet and PPP will be unhooked with the TCP/IP stack.<br/>
+            <br/>
+            With this class, the user can communicate with other devices using PPP and Micro Framework TCP/IP stack.<br/>
+            Only PPP client with PAP authentication or non-authentication is supported.<br/>
+            The user starts by enabling the PPP communication interface. Then a connection is established using Connect(). Once the connection is ready, the user can use network features.
+            </remarks>
+            /// <example>
+            This example enables Ethernet Interface and retrieves an IP address lease from DHCP server. An example code about AT commands is also provided.
+            <code>
+<![CDATA[
+/// Add these libraries to your project's References
+/// System
+/// Microsoft.SPOT.Net
+/// Microsoft.SPOT.Hardware.SerialPort
+/// GHIElectronics.NETMF.System
+/// GHIElectronics.NETMF.Net
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Net.NetworkInformation;
+using GHIElectronics.NETMF.Net;
+using System.Net;
+using System.IO.Ports;
+
+namespace PPP_Example_4._0
+{
+    public class Program
+    {
+        static public SerialPort modem = new SerialPort("COM2", 115200);
+        static public bool network_is_read = false;
+        public static void Main()
+        {
+            NetworkChange.NetworkAvailabilityChanged += new NetworkAvailabilityChangedEventHandler(NetworkChange_NetworkAvailabilityChanged);
+            // Till this point TCP/IP stack is hooked previously Enabled interface (Ethernet by default)
+            PPP.Enable(modem);
+            modem.Handshake = Handshake.RequestToSend; // This is to avoid data loss during PPP communication.
+            modem.Open();
+            modem.ErrorReceived += new SerialErrorReceivedEventHandler(modem_ErrorReceived);
+            NetworkInterface[] netif = NetworkInterface.GetAllNetworkInterfaces();
+
+
+            Debug.Print("Dial-in using AT commands");
+            ATcommander at = new ATcommander(modem);
+            if (at.ClientConnectModem())
+            {
+                network_is_read = false;
+                Debug.Print("Connect PPP");
+                switch (PPP.Connect("username", "password"))
+                {
+                    case PPP.ConnectionStatus.Authentication_Faild:
+                        Debug.Print("Authentication_Faild");
+                        break;
+                    case PPP.ConnectionStatus.Connection_Faild:
+                        Debug.Print("Connection_Faild");
+                        break;
+                    case PPP.ConnectionStatus.Connected:
+                        // PPP setting will overload the first interface settings since only one interface is supported.
+                        netif = NetworkInterface.GetAllNetworkInterfaces();
+                        Debug.Print("PPP Network settings:");
+                        Debug.Print("IP Address: " + netif[0].IPAddress);
+                        Debug.Print("Subnet Mask: " + netif[0].SubnetMask);
+                        Debug.Print("Default Getway: " + netif[0].GatewayAddress);
+                        Debug.Print("DNS Server: " + netif[0].DnsAddresses[0]);
+                        network_is_read = false;
+                        break;
+                    case PPP.ConnectionStatus.Disconnected:
+                        Debug.Print("Disconnected");
+                        break;
+
+                }
+            }
+            else
+            {
+                Debug.Print("Terminal server is not responding");
+            }
+            if (network_is_read)
+            {
+                Debug.Print("Test DNS");
+                try
+                {
+                    IPHostEntry myIP = Dns.GetHostEntry("www.ghielectronics.com");
+
+                    if (myIP != null)
+                    {
+                        Debug.Print(myIP.HostName + ": " + myIP.AddressList[0].ToString());
+                    }
+                }
+                catch
+                {
+                    Debug.Print("Faild to Get the host entry of the FQN from DNS server!");
+                }
+
+                Debug.Print("Disconnect PPP link.");
+                PPP.Disconnect();
+
+            }
+
+            Debug.Print("Disable PPP interface");
+            PPP.Disable();
+            // At this point TCP/IP stack will reinitialized be hooked back to Ethernet or WiFi
+            
+            Thread.Sleep(Timeout.Infinite);
+
+        }
+
+        static void NetworkChange_NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
+        {
+
+            if (e.IsAvailable)
+            {
+                if (PPP.IsLinkConnected)
+                {
+                    Debug.Print("PPP connection was established!");
+                }
+            }
+            else
+            {
+                if (!PPP.IsLinkConnected)
+                {
+                    Debug.Print("PPP connection was dropped or disconnected!");
+                    network_is_read = false;
+                }
+            }
+        }
+
+        static void modem_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            // Serial communication is loosing data
+        }
+
+    }
+}
+
+]]>
+</code>
+            </example>
+            /// <example>
+            This example provide simple class code to handle AT command dial up process. This code is use with Telit GM862. User must use this code as only an example and it is provided as it is.
+            <code>
+<![CDATA[
+/// Add these libraries to your project's References
+/// System
+/// Microsoft.SPOT.Net
+/// Microsoft.SPOT.Hardware.SerialPort
+/// GHIElectronics.NETMF.System
+/// GHIElectronics.NETMF.Net
+using System;
+using Microsoft.SPOT;
+using System.IO.Ports;
+using System.Text;
+using System.Threading;
+
+
+enum ATSequence
+{
+    CR_Begin,
+    NL_Begin,
+    ResultCode,
+    CR_End,
+    NL_End
+};
+enum ATstatus
+{
+    init,
+    APsetting,
+    Dial,
+    Connected,
+    Disconnect
+};
+
+class ATcommander
+{
+    SerialPort modem;
+    ATstatus atstatus = ATstatus.init;
+    ATSequence atsequence = ATSequence.CR_Begin;
+    bool clientReq = false;
+    public ATcommander(SerialPort serial)
+    {
+        modem = serial;
+    }
+
+    public bool ClientConnectModem()
+    {
+        bool con = false;
+        int trial = 0;
+        int size = 0;
+        String message;
+        byte[] buffer = new byte[125];
+        if (clientReq == false)
+        {
+
+
+            clientReq = true;
+            atstatus = ATstatus.init;
+            atsequence = ATSequence.CR_Begin;
+            modem.Write(new byte[] { 0x7E, 0xFF, 0x7D, 0x23, 0xC0, 0x21, 0x7D, 0x25, 0x7D, 0x2A, 0x7D, 0x20, 0x7D, 0x30, 0x2B, 0xD3, 0x45, 0xAF, 0x7D, 0x20, 0x3C, 0xCD, 0x74, 0x7D, 0x20, 0x7D, 0x20, 0x7D, 0x20, 0x7D, 0x20, 0x2A, 0x9D, 0x7E }, 0, 34);// Terminate request          
+            modem.Write(Encoding.UTF8.GetBytes("\r+++"), 0, 4);// Escape Sequence
+            Thread.Sleep(3000);
+            modem.Write(Encoding.UTF8.GetBytes("ATH\r"), 0, 4); // Hook On
+            Thread.Sleep(1000);
+            modem.Write(Encoding.UTF8.GetBytes("ATZ\r"), 0, 4); // Soft Reset, basic default restore
+            Thread.Sleep(100);
+            modem.Write(Encoding.UTF8.GetBytes("ATE\r"), 0, 4); // Echo Disabled
+            Thread.Sleep(100);
+            modem.DiscardInBuffer();
+            // modem.DataReceived += new SerialDataReceivedEventHandler(modem_DataReceived);
+            modem.Write(Encoding.UTF8.GetBytes("AT+FLO=2\r"), 0, 9);// Enable handshaking
+            // modem.Write(Encoding.UTF8.GetBytes("AT\r"), 0, 3);
+            Thread.Sleep(100);
+
+
+            while (!con)
+            {
+                size = modem.Read(buffer, 0, modem.BytesToRead);
+                for (int i = 0; i < size; i++)
+                {
+                    //Debug.Print(((char)buffer[i]).ToString());
+
+                    // AT stuff//////////////////////
+                    message = GetATResultCode(buffer[i]);
+                    if (message != null)
+                    {
+                        Debug.Print(message);
+                        con = ProcessAT(message);
+                    }
+                    /////////////////////////////////
+                }
+
+                trial++;
+                if (trial > 20)// trials
+                {
+
+                    clientReq = false;
+                    return false;
+                }
+                Thread.Sleep(100);
+            }
+            clientReq = false;
+            return true;
+        }
+        return false;
+
+    }
+
+    private bool ProcessAT(String message)
+    {
+        switch (atstatus)
+        {
+            case ATstatus.init:
+                if (message == "OK")
+                {
+                    atstatus = ATstatus.APsetting;
+                    modem.Write(Encoding.UTF8.GetBytes("AT+cgdcont=2,\"IP\",\"wap.cingular\"\r"), 0, 33);
+                }
+                break;
+            case ATstatus.APsetting:
+                if (message == "OK")
+                {
+                    atstatus = ATstatus.Dial;
+                    modem.Write(Encoding.UTF8.GetBytes("ATDT*99***2#\r"), 0, 13);
+                }
+                break;
+            case ATstatus.Dial:
+                if (message == "CONNECT")
+                {
+                    atstatus = ATstatus.Connected;
+                    Debug.Print("AT connected, Ready for PPP connection Establishing!");
+                    return true;
+                }
+                else
+                {
+                    modem.Write(Encoding.UTF8.GetBytes("ATDT*99***2#\r"), 0, 13);
+                }
+                break;
+        }
+        return false;
+
+    }
+
+
+    static byte[] ResultCodeBuffer = new byte[32];
+    int index = 0;
+
+    private String GetATResultCode(byte s)
+    {
+
+        switch (atsequence)
+        {
+            case ATSequence.CR_Begin:
+                if (s == 0x0D)
+                    atsequence = ATSequence.NL_Begin;
+                break;
+            case ATSequence.NL_Begin:
+                if (s == 0x0A)
+                {
+                    atsequence = ATSequence.ResultCode;
+                    index = 0;
+                }
+                else
+                {
+                    atsequence = ATSequence.CR_Begin;
+                }
+                break;
+            case ATSequence.ResultCode:
+                if (s == 0x0D)
+                {
+                    if (index != 0)
+                        atsequence = ATSequence.NL_End;
+                    else
+                        atsequence = ATSequence.NL_Begin;
+                }
+                else if (s == 0x0A)
+                    atsequence = ATSequence.CR_Begin;
+                else
+                {
+                    ResultCodeBuffer[index++] = s;
+                }
+                break;
+            case ATSequence.CR_End:
+                if (s == 0x0D)
+                    atsequence = ATSequence.NL_End;
+                else
+                {
+                    atsequence = ATSequence.CR_Begin;
+                }
+                break;
+            case ATSequence.NL_End:
+                if (s == 0x0A)
+                {
+                    atsequence = ATSequence.CR_Begin;
+
+                    return new String(Encoding.UTF8.GetChars(ResultCodeBuffer), 0, index);
+                }
+                break;
+        }
+        return null;
+    }
+
+}
+
+
+
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.PPP.Enable(System.IO.Ports.SerialPort)">
+            <summary>
+            Enable PPP interface. It hooks TCP/IP stack to PPP interface and serial port to modem.<br/>
+            </summary>
+            <remarks>
+            This Method enables the network interface dynamically. There is no need to restart the system to get the interface active.<br/>
+            PPP Interface will NOT be enabled on next system startup. i.e. user has to enable PPP in the application.<br/>
+            Executing this method unhooks the TCP/IP stack from other Network interfaces such as Ethernet or PPP.<br/>
+            It is recommended to close all sockets/connections before executing this method, otherwise they will be lost.<br/>
+            <stong>Note:</stong> PPP can be disabled using Disable(). The TCP/IP stack will hook back with the original networking interface, Ethernet or WiFi.<br/>
+            </remarks>
+            <param name="serial">SerialPort object controlling hardware serial port connected to the modem</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.PPP.Enable(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Enable PPP interface. It hooks TCP/IP stack to PPP interface and serial port capable USB devices uch as USB-to-Serial, CDC or Sierra 3G USB modem.<br/>
+            </summary>
+            <remarks>
+            This Method enables the network interface dynamically. There is no need to restart the system to get the interface active.<br/>
+            PPP Interface will NOT be enabled on next system startup. i.e. user has to enable PPP in the application.<br/>
+            Executing this method unhooks the TCP/IP stack from other Network interfaces such as Ethernet or PPP.<br/>
+            It is recommended to close all sockets/connections before executing this method, otherwise they will be lost.<br/>
+            <stong>Note:</stong> PPP can be disabled using Disable(). The TCP/IP stack will hook back with the original networking interface, Ethernet or WiFi.<br/>
+            <stong>Important Note:</stong> Use must Disconnect, Disable PPP if the USBH_SerialUSB is disconnected.<br/>
+            </remarks>
+            <param name="usbDevice"> Must be a <c>USBH_SerialUSB</c>. </param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.PPP.Disable">
+            <summary>
+            Disable PPP interface.
+            </summary>
+            <remarks>Use this method to disable PPP interface and hook the TCP/IP stack back to the previous networking interface WiFi or Ethernet.<br/>
+            <stronge>Note:</stronge> PPP connection must be disconnected before disabling the inteface.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.PPP.Connect(System.String,System.String)">
+            <summary>
+            Performs PPP connection using a user name and passward with PAP authentication.<br/>  This feature enables the user to dial in through serial modem ( V.90/ GPRS/ 3G ) to access the Internet or extranet.<br/>In this case, Network settings will be taken from the host server.<br/>
+            </summary>
+            <param name="username">Username</param>
+            <param name="password">Uassword</param>
+            <returns>ConnectionStatus</returns>
+            <remarks>
+            <b>Note: </b>This method is blocking.<br/>
+            <b>Note: </b>The communication interface(for example a COM port) MUST be ready and opened before the method is called.<br/>
+            <b>Note: </b>Once this method is called, the user MUST not use the communication interface (for example, the serial port).<br/>
+            <b>Note: </b>The user MUST make sure the connection is ready before using the MFW TCP/IP stack and opening sockets.<br/>
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.PPP.Disconnect">
+            <summary>
+            Disconnects PPP after a successful connection.
+            </summary>
+            <returns>ConnectionStatus</returns>
+            <remarks>
+            <b>Note: </b>This method is blocking.<br/>
+            <b>Note: </b>The user can use the communication interface (for example a COM port) only after the method is done.<br/>
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.PPP.IsLinkConnected">
+            <summary>
+            Checks PPP link status.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.PPP.IsEnabled">
+            <summary>
+            Checks if PPP interface is currently enabled or not.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.PPP.ConnectionStatus">
+            <summary>
+            Connect() or Disconnect() return enumeration
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.PPP.ConnectionStatus.Connected">
+            <summary>
+            PPP connection was established successfully.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.PPP.ConnectionStatus.Disconnected">
+            <summary>
+            PPP connection was disconnected successfully.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.PPP.ConnectionStatus.Connection_Faild">
+            <summary>
+            PPP connection failed and it is disconnected. This could be because the server is requesting CHAP authentication protocol. Only PAP is supported.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Net.PPP.ConnectionStatus.Authentication_Faild">
+            <summary>
+            PPP connection failed due to worng username or password.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Net.Ethernet">
+            <summary>
+            This class providse setup features to control the Ethernet interface.
+            </summary>
+            <remarks>
+            <strong>Important note:</strong> Currently TCP/IP stack can handle only one network interface at the same time.
+            For instance, if Ethernet is enabled, PPP and WiFi will be unhooked with the TCP/IP stack.<br/>
+            <br/>
+            Other general Ethernet settings are available through the following classes:<br/>
+            <c>Microsoft.SPOT.Net.NetworkInformation</c><br/>
+            <c>Microsoft.SPOT.Net.NetworkInformation.NetworkInterface</c><br/>
+            Network availability event handler is also available through <c>Microsoft.SPOT.Net.NetworkInformation.NetworkChange</c> class.<br/>
+            </remarks>
+            <example>
+            This example enables Ethernet Interface and retrieves an IP address lease from DHCP server.
+            <code>
+<![CDATA[
+/// Add these libraries to your project's References
+/// System
+/// Microsoft.SPOT.Net
+/// GHIElectronics.NETMF.System
+/// GHIElectronics.NETMF.Net
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Net.NetworkInformation;
+using GHIElectronics.NETMF.Net;
+using System.Net;
+
+namespace Ethernet_Example_4._0
+{
+    public class Program
+    {
+        static public bool ethernet_event = false;
+        static public bool ethernet_last_status = false;
+        static public bool network_is_read = false;
+        static public ManualResetEvent NetworkAvailablityBlocking = null;
+        public static void Main()
+        {
+            
+            if (!Ethernet.IsEnabled)
+            {
+                Ethernet.Enable();
+            }
+            NetworkChange.NetworkAvailabilityChanged += new NetworkAvailabilityChangedEventHandler(NetworkChange_NetworkAvailabilityChanged);
+            NetworkInterface[] netif = NetworkInterface.GetAllNetworkInterfaces();
+            // Ethernet is always the first interface netif[0]
+            NetworkAvailablityBlocking = new ManualResetEvent(false);
+            if (!Ethernet.IsCableConnected)
+            {
+                Debug.Print("Cable is not connected!");
+                NetworkAvailablityBlocking.Reset();
+                while (!NetworkAvailablityBlocking.WaitOne(5000, false))
+                {
+                    if (!Ethernet.IsCableConnected)
+                    {
+                        Debug.Print("Cable is not connected!");
+                        Debug.Print("Still waiting.");
+                    }
+                    else
+                        break;
+                }
+            }
+
+            Debug.Print("Ethernet cable is connected!");
+            Debug.Print("Enable DHCP");
+            try
+            {
+                if (!netif[0].IsDhcpEnabled)
+                    netif[0].EnableDhcp();// This function is blocking
+                else
+                {
+                    netif[0].RenewDhcpLease();// This function is blocking
+                }
+                network_is_read = true;
+                Debug.Print("Network settings:");
+                Debug.Print("IP Address: " + netif[0].IPAddress);
+                Debug.Print("Subnet Mask: " + netif[0].SubnetMask);
+                Debug.Print("Default Getway: " + netif[0].GatewayAddress);
+                Debug.Print("DNS Server: " + netif[0].DnsAddresses[0]);
+            }
+            catch
+            {
+                Debug.Print("DHCP Faild");
+            }
+
+            Debug.Print("Test DNS");
+            try
+            {
+                IPHostEntry myIP = Dns.GetHostEntry("www.ghielectronics.com");
+
+                if (myIP != null)
+                {
+                    Debug.Print(myIP.HostName + ": " + myIP.AddressList[0].ToString());
+                }
+            }
+            catch
+            {
+                Debug.Print("Faild to Get the host entry of the FQN from DNS server!");
+            }
+
+            Thread.Sleep(Timeout.Infinite);
+          
+        }
+
+        static void NetworkChange_NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
+        {
+            if (e.IsAvailable)
+            {
+                if (Ethernet.IsCableConnected)
+                {
+                    if (ethernet_last_status != true)
+                    {
+                        ethernet_last_status = true;
+                        NetworkAvailablityBlocking.Set();
+                    }
+                }
+            }
+            else
+            {
+                if (!WiFi.IsLinkConnected)
+                {
+                    if (ethernet_last_status != false)
+                    {
+                        ethernet_last_status = false;
+                        network_is_read = false;
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Net.Ethernet.Enable">
+            <summary>
+            Hooks TCP/IP stack to Ethernet interface.<br/>
+            </summary>
+            <remarks>
+            This Method enables the network interface dynamically. There is no need to restart the system to get the interface active.<br/>
+            Furthermore, there is no need to enable the interface every time the system runs since enabling interface becomes permanent unless it is changed again.<br/>
+            Executing this method unhooks the TCP/IP stack from other Network interfaces such as WiFi or PPP.<br/>
+            It is recommended to close all sockets/connections before executing this method, otherwise they will be lost.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Ethernet.IsCableConnected">
+            <summary>
+            Checks Ethernet cable connection status.
+            </summary>
+            <remarks>This Property can be called any time to check whether the cable is connected or not.</remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Net.Ethernet.IsEnabled">
+            <summary>
+            Checks if Ethernet interface is currently enabled or not.
+            </summary>
+        </member>
+    </members>
+</doc>

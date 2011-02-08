@@ -1,0 +1,1774 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Hardware</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.Power">
+            <summary>
+            Power Management Methods.
+            </summary>
+            <remarks>
+            This class provides several methods to manage the power.<br/>
+            Important Note: When using waking up upon InterruptInputs activity, the desired InterruptPort must be enabled with glitch filter or has OnInterrupt event assigned.<br/>
+            <br/>
+            Only available for USBizi and EMX.
+            </remarks>
+            <example>
+            Hibernate and wake up on InterruptPort activity.<br/>
+            <code>
+<![CDATA[
+using System;
+using Microsoft.SPOT.Hardware;
+using GHIElectronics.NETMF.Hardware;
+using GHIElectronics.NETMF.Hardware.LowLevel;
+using System.Threading;
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Assign an InterruptPort, this pin will wake up the device
+            InterruptPort button_Sel = new InterruptPort((Cpu.Pin)30, true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeHigh);
+            Debug.Print("Hibernate in 5 seconds");
+            Thread.Sleep(5000);
+            Debug.Print("Hibernating...");
+            Power.Hibernate(Power.WakeUpInterrupt.InterruptInputs);
+
+            // Toggle IO30 to wake up the system.
+        }
+    }
+}
+]]>
+</code>
+            Hibernate and wake up on EINT0 activity.
+            <code>
+<![CDATA[
+using System;
+using Microsoft.SPOT.Hardware;
+using GHIElectronics.NETMF.Hardware;
+using GHIElectronics.NETMF.Hardware.LowLevel;
+using System.Threading;
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            Debug.Print("Hibernate in 5 seconds");
+            Thread.Sleep(5000);
+            Debug.Print("Hibernating...");
+            Power.Hibernate(Power.WakeUpInterrupt.EINT0);
+
+            // The system wakes up if EINT0 level is Low. (IO0 USBizi or IO23 EMX/Embedded Master)
+        }
+    }
+}
+]]>
+</code>
+            Hibernate and wake up on time alarm signal.
+            <code>
+<![CDATA[
+using System;
+using Microsoft.SPOT.Hardware;
+using GHIElectronics.NETMF.Hardware;
+using GHIElectronics.NETMF.Hardware.LowLevel;
+using System.Threading;
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            Debug.Print("Hibernate in 5 seconds");
+            Thread.Sleep(5000);
+            RealTimeClock.SetTime(new DateTime(2010, 07, 30, 13, 31, 00));
+            RealTimeClock.SetAlarm(new DateTime(2010, 07, 30, 13, 31, 10));
+            Debug.Print("Hibernating...");
+            Power.Hibernate(Power.WakeUpInterrupt.RTCAlarm);
+
+            // The system wakes up in 10 seconds on alarm
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Power.Hibernate(GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt)">
+            <summary>
+            Hibernates the system.
+            </summary>
+            <param name="WakeUpInterrupt">The interrupt(s) desired to wake up the system </param>
+            <remarks>
+            This method is very useful when power saving is a must. On Hibernate, the processor will turn off completely.<br/>
+            You have to specifiy interrupt(s) to wake up the system later.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Power.EthernetOscillatorEnable(System.Boolean)">
+            <summary>
+            This method turns off the Ethernet oscillator when Ethernet networking is not used.<br/>
+            </summary>
+            <param name="state"><c>false</c> to disable the oscillator.</param>
+            <remarks>
+            On EMX module power savings is about 25mA.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt">
+            <summary>
+            Interrupts that can wake up the system after hibernating.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt.EINT0">
+            <summary>
+            External Interrupt 0 (IO0 on USBizi or IO23 on EMX/Embedded Master).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt.CAN">
+            <summary>
+            Activity of the CAN bus.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt.InterruptInputs">
+            <summary>
+            Specified activity on any InterruptPort.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt.BrownOutDetect">
+            <summary>
+            Brown-Out Detect interrupt.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Power.WakeUpInterrupt.RTCAlarm">
+            <summary>
+            Assertion of an RTC alarm interrupt.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.AnalogIn">
+            <summary>
+            Provides the ability to read an analog input pin.
+            </summary>
+            <remarks>
+            Please refer to your platform documentation for the available analog pins. The analog pin is initialized with the default platform resolution.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            Default resolution is 10 bits with analog value between [0, 1023].
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogIn.Dispose">
+            <summary>
+            Disposes the pin and marks it as available again.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogIn.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogIn.#ctor(GHIElectronics.NETMF.Hardware.AnalogIn.Pin)">
+            <summary>
+            Creates a new analog pin.
+            </summary>
+            <param name="ain">Needed analog pin.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogIn.SetLinearScale(System.Int32,System.Int32)">
+            <summary>
+            Scales the analog value when reading automatically into a specific range.
+            </summary>
+            <param name="minValue">Min value.</param>
+            <param name="maxValue">Max value.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogIn.Read">
+            <summary>
+            Reads the current analog value.
+            </summary>
+            <returns>Current analog value.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.AnalogIn.Pin">
+            <summary>
+            Lists the analog input pins.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain0">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain1">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain2">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain3">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain4">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain5">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain6">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain7">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain8">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain9">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain10">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain11">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain12">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain13">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain14">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogIn.Pin.Ain15">
+            <summary>Analog input pin.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.AddressSpace">
+            <summary>
+            Provides access to the address space.
+            </summary>
+            <remarks>
+            Addresses access might be restricted on certain platforms.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            Denoting '[' as inclusive and ')' as exclusive, only register access (4 bytes) with the following address ranges are valid:<br/>
+            [0x3FFFC000 to 0x3FFFC0A0),<br/>
+            [0xE0000000 to 0xE0000014),<br/>
+            [0xE0004000 to 0xE004C000),<br/>
+            [0xE0068000 to 0xE0090000),<br/>
+            [0xE01FC000 to 0xE0200000),<br/>
+            [0xFFE00000 to 0xFFE00FF8],<br/>
+            [0xFFE0C000 to 0xFFE10000],<br/>
+            [0xFFE10000 to 0xFFE10030],<br/>
+            [0xFFE10200 to 0xFFE103FC],<br/>
+            [0xFFE10800 to 0xFFE10BFC],<br/>
+            [0xFFE10C00 to 0xFFE10C2C].<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            No current restrictions.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.AddressSpace.Write(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes a buffer to the target address space.
+            </summary>
+            <param name="address">Starting address.</param>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.AddressSpace.Read(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads the address space into a buffer.
+            </summary>
+            <param name="address">Starting address.</param>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration">
+            <summary>
+            Provides access to some hardware and software configurations.
+            </summary>
+            <remarks>
+            Some of the configurations must only be used by advanced users. If you need to revert to the default settings and you are not able to do so in software, you must download TinyCLR firmware files and possibly TinyBooter again to your hardware. The configurations are normally saved in the config file.<br/>
+            Configurations will be saved internally and always used for future reboots, unless otherwise noted.<br/>
+            <br/>
+            <strong>Note:</strong> You must reset the hardware after you change the settings for them to take effect, unless otherwise noted.<br/>
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.TinyBooter">
+            <summary>
+            Provides some TinyBooter options.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.TinyBooter.DisableApplicationAccess(System.Boolean)">
+            <summary>
+            Disables managed application access.
+            </summary>
+            <param name="isDisabled"><c>true</c> to disable it.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+            <remarks>
+            This is used to disable access to the managed application from TinyBooter. When it is enabled, the application cannot be erased, read or be written to.<br/>
+            <br/>
+            This is only supported on EMX.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.PermanentUserKey">
+            <summary>
+            Permanent user stored key.
+            </summary>
+            <remarks>
+            <strong style="color:red">NOTE:</strong> The key is stored in permanent memory. It can only be set once and cannot be erased. The process is critical and any power failures during storing the key may result in permanent damage to your hardware module.<br/>
+            <br/>
+            Using this class you can store a permanent key on your device. It is just a number of stored bytes and can be used as an ID, serial number...etc. The key can be stored once and cannot be erased (even if you erase all from the bootloader).<br/>
+            The number of bytes supported for the key can be obtained from <c>PermanentUserKey.KeyLength</c>. Currently, this value is fixed to 16 bytes.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.PermanentUserKey.Get(System.Byte[])">
+            <summary>
+            Gets the stored key.
+            </summary>
+            <param name="key">The array must be of size <c>PermanentUserKey.KeyLength</c>.</param>
+            <returns><c>true</c> only if the key was stored previously.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.PermanentUserKey.Set(System.Byte[])">
+            <summary>
+            Stores the key in permanent memory.
+            </summary>
+            <remarks>
+            <strong style="color:red">NOTE:</strong> The key is stored in permanent memory. It can only be set once and cannot be erased. The process is critical and any power failures during storing the key may result in permanent damage to your hardware module.<br/>
+            </remarks>
+            <param name="key">The array must be of size <c>PermanentUserKey.KeyLength</c>.</param>
+            <returns><c>true</c> only if the key was stored successfully. The key can only be stored once and must not contain all 0xFF values for the key bytes.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.PermanentUserKey.KeyLength">
+            <summary>
+            Supported number of bytes for the key.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.StartUpLogo">
+            <summary>
+            Startup logo.
+            </summary>
+            <remarks>
+            You can set a custom startup logo for your device. This is saved internally and will be used on every reboot.<br/>
+            There are restrictions on the size of the logo, see <c>SupportedWidth</c> and <c>SupportedHeight</c>. This class only accepts a Bitmap byte array which can be generated from <c>myBitmap.GetBitmap()</c>.
+            </remarks>
+            <example>
+            <code>
+<![CDATA[
+using Microsoft.SPOT;
+using Microsoft.SPOT.Presentation;
+
+using GHIElectronics.NETMF.Hardware;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // get then logo
+            Bitmap logo = Resources.GetBitmap(Resources.BitmapResources.logo);
+
+            // Scale to supported width and height
+            Bitmap scaledLogo = new Bitmap(Configuration.StartUpLogo.SupportedWidth, Configuration.StartUpLogo.SupportedHeight);
+            scaledLogo.StretchImage(0, 0, logo, scaledLogo.Width, scaledLogo.Height, Bitmap.OpacityOpaque);
+
+            // Set the logo. The logo position will be the lower right corner.
+            Configuration.StartUpLogo.Set(scaledLogo.GetBitmap(), SystemMetrics.ScreenWidth - Configuration.StartUpLogo.SupportedWidth, SystemMetrics.ScreenHeight - Configuration.StartUpLogo.SupportedHeight);
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.StartUpLogo.Set(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Sets custom Startup logo.
+            </summary>
+            <param name="bitmapBytes"><c>Bitmap</c> bytes.</param>
+            <param name="destX">Logo x position.</param>
+            <param name="destY">Logo y position.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.StartUpLogo.Enabled">
+            <summary>
+            Gets/Sets Startup Logo enable.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.StartUpLogo.SupportedWidth">
+            <summary>
+            Supported Width.
+            </summary>
+            <remarks>
+            Currently fixed to 180.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.StartUpLogo.SupportedHeight">
+            <summary>
+            Supported Height.
+            </summary>
+            <remarks>
+            Currently fixed to 180.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.Heap">
+            <summary>
+            Heap configuration.
+            </summary>
+            <remarks>
+            The total heap size is fixed. This includes regular heap size and custom heap size. You can set the custom heap size using <c>Heap.SetCustomHeapSize</c> and the regular heap size will be the total heap size - custom heap size.<br/>
+            Regular heap is just the one used by NETMF for allocating memory for objects. Custom heap is a seperate heap that is not fully managed. It is currently used for big Bitmaps, Large Buffer and wear leveling.<br/>
+            <br/>
+            <strong>Big Bitmaps:</strong> This is needed for large LCDs to allocate bitmaps with needed memory more than 786420 / 2. Note that it is best to Dispose your bitmaps after you are done with them or the custom heap will become full quickly.<br/>
+            <strong>Large Buffer:</strong> Please see <c>Microsoft.SPOT.Hardware.LargeBuffer</c>. You can use this to allocate blocks larger than allowed by the managed heap which is about 786420.<br/>
+            <strong>Wear Leveling:</strong> Used intenally on storage devices. Currently, it is only used with internal NAND storage on ChipworkX.<br/>
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.Heap.SetCustomHeapSize(System.UInt32)">
+            <summary>
+            Sets custom heap size.
+            </summary>
+            <param name="customHeapSize">Size of custom heap.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.Heap.TotalHeapSize">
+            <summary>
+            Total heap size.
+            </summary>
+            <remarks>
+            Includes managed heap size and custom heap size.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.Heap.CurrentManagedHeapSize">
+            <summary>
+            Current managed heap size.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.Configuration.Heap.CurrentCustomHeapSize">
+            <summary>
+            Current custom heap size.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.LCD">
+            <summary>
+            LCD configurations.
+            </summary>
+            <remarks>
+            This class can change the used LCD. You can change the needed display settings to match your LCD requirements.<br/>
+            Do not use <c>LCD_Configuration.PriorityEnable</c> unless necessary. It may degrade performance.<br/>
+            <br/>
+            Note that setting <c>PixelClockDivider</c> to 0xFF will not refresh the LCD and it will be disabled.
+            <br/>
+            <strong style="color:blue">EMX</strong><br/>
+            The LCD Controller Source Clock is 72 MHz. LCD Clock = LCD Controller Source Clock / PixelClockDivider<br/>
+            Maximum supported resolution is 800x600.<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            The LCD Controller Source Clock is 100 MHz. LCD Clock = LCD Controller Source Clock / ((PixelClockDivider + 1) * 2)<br/>
+            Maximum supported resolution is 800x600.<br/>
+            </remarks>
+            <example>
+            This is configuration for 4.3" LCD with resolution of 480x272 used on ChipworkX and Embedded Master development systems. Part number: LQ043T1DG01.
+            <code>
+<![CDATA[
+Configuration.LCD.Configurations lcdConfig = new Configuration.LCD.Configurations();
+
+lcdConfig.Width = 480;
+lcdConfig.Height = 272;
+
+// Only use if needed, see documentation.
+lcdConfig.PriorityEnable = false;
+
+lcdConfig.OutputEnableIsFixed = true;
+lcdConfig.OutputEnablePolarity = true;
+
+lcdConfig.HorizontalSyncPolarity = false;
+lcdConfig.VerticalSyncPolarity = false;
+lcdConfig.PixelPolarity = false;
+
+lcdConfig.HorizontalSyncPulseWidth = 41;
+lcdConfig.HorizontalBackPorch = 2;
+lcdConfig.HorizontalFrontPorch = 2;
+lcdConfig.VerticalSyncPulseWidth = 10;
+lcdConfig.VerticalBackPorch = 2;
+lcdConfig.VerticalFrontPorch = 2;
+
+// NOTE: This is used for EMX, comment if using ChipworkX.
+//lcdConfig.PixelClockDivider = 8;
+
+// NOTE: This is used for ChipworkX, comment if using EMX.
+lcdConfig.PixelClockDivider = 4;
+
+// Set configs
+Configuration.LCD.Set(lcdConfig);
+]]>
+</code>
+            This is configuration for 3.5" LCD with resolution of 320x240 used on EMX development system. Part number: PT0353224T-A802.
+            <code>
+<![CDATA[
+Configuration.LCD.Configurations lcdConfig = new Configuration.LCD.Configurations();
+
+lcdConfig.Width = 320;
+lcdConfig.Height = 240;
+
+// Only use if needed, see documentation.
+lcdConfig.PriorityEnable = false;
+
+lcdConfig.OutputEnableIsFixed = true;
+lcdConfig.OutputEnablePolarity = true;
+
+lcdConfig.HorizontalSyncPolarity = false;
+lcdConfig.VerticalSyncPolarity = false;
+lcdConfig.PixelPolarity = true;
+
+lcdConfig.HorizontalSyncPulseWidth = 41;
+lcdConfig.HorizontalBackPorch = 27;
+lcdConfig.HorizontalFrontPorch = 51;
+lcdConfig.VerticalSyncPulseWidth = 10;
+lcdConfig.VerticalBackPorch = 8;
+lcdConfig.VerticalFrontPorch = 16;
+
+lcdConfig.PixelClockDivider = 8;
+
+// Set config
+Configuration.LCD.Set(lcdConfig);
+]]>
+</code>
+            This is configuration for VGA display with resolution of 640x480 (actual timings for 480x480) on EMX.
+            <code>
+<![CDATA[
+Configuration.LCD.Configurations lcdConfig = new Configuration.LCD.Configurations();
+
+lcdConfig.Width = 480;
+lcdConfig.Height = 480;
+
+// VGA requires high refresh rate, enable bus priority.
+lcdConfig.PriorityEnable = true;
+
+lcdConfig.OutputEnableIsFixed = true;
+lcdConfig.OutputEnablePolarity = true;
+
+lcdConfig.HorizontalSyncPolarity = false;
+lcdConfig.VerticalSyncPolarity = false;
+lcdConfig.PixelPolarity = true;
+
+lcdConfig.HorizontalSyncPulseWidth = 69;
+lcdConfig.HorizontalBackPorch = 20;
+lcdConfig.HorizontalFrontPorch = 3;
+lcdConfig.VerticalSyncPulseWidth = 2;
+lcdConfig.VerticalBackPorch = 32;
+lcdConfig.VerticalFrontPorch = 11;
+
+lcdConfig.PixelClockDivider = 4;
+
+// Set config
+Configuration.LCD.Set(lcdConfig);
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.LCD.SetRotation(GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation)">
+            <summary>
+            Changes LCD orientation.
+            </summary>
+            <param name="rot">Rotation setting.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+            <remarks>
+            This is used to rotate the LCD. For example, if the LCD need to be viewed from the side or upside down.<br/>
+            Typically, an LCD with the needed orientation should be used and this method is not needed. But in cases where the LCD cannot be changed, use this function.<br/>
+            Assume an LCD with 320x240 resolution. After rotation 90 degrees, the LCD graphics will be 240x320 instead.<br/>
+            <strong>Note</strong> that because of the dimension change, the LCD must NOT be rotated while WPF is active. Typically, the user will set the LCD rotation at startup and then run the WPF application.<br/>
+            The change in dimensions and LCD rotation is done in software and consumes CPU processing time when graphics are flushed to the LCD. Therefore, only use it if necessary.<br/>
+            Also, when LCD is rotated, touch events are rotated accordingly. You need to set the touch calibration after rotation.<br/>
+            <br/>
+            For example to rotate 320x240 LCD to output 240x320 graphics,<br/>
+            1) Set rotation to CW 90 degrees.<br/>
+            2) Start WPF. Dimensions and graphics are 240x320 now.<br/>
+            3) Calibrate touch if used.<br/>
+            <br/>
+            <strong>Note:</strong> Rotation settings are done dynamically; no reboot is needed and they are NOT saved internally. They must be set each time the application starts.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.HeadlessConfig">
+            <summary>
+            Choose for headless LCD.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.LCD.EnableLCDBootupMessages(System.Boolean)">
+            <summary>
+            Enables/Disables LCD bootup messages.
+            </summary>
+            <param name="IsEnabled"><c>true</c> if messages are enabled.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.LCD.Set(GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations)">
+            <summary>
+            Sets LCD Configuration.
+            </summary>
+            <param name="config">LCD configuration.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation">
+            <summary>
+            Rotation type.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation.Rotate_Normal">
+            <summary>Normal.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation.Rotate_CW_90">
+            <summary>Rotate clockwise 90 degrees.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation.Rotate_180">
+            <summary>Rotate 180 degrees.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Rotation.Rotate_CCW_90">
+            <summary>Rotate counterclockwise 90 degrees.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations">
+            <summary>
+            Configurations.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.#ctor">
+            <summary>
+            Constructor.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.#ctor(System.UInt32,System.UInt32,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="Width">Resolution width.</param>
+            <param name="Height">Resolution height.</param>
+            <param name="PriorityEnable">Internal LCD bus priority.</param>
+            <param name="OutputEnableIsFixed"><c>true</c> if LCD enable is a fixed state. <c>false</c> if LCD enable is managed by LCD controller.</param>
+            <param name="OutputEnablePolarity"><c>true</c> if active state is high.</param>
+            <param name="HorizontalSyncPolarity"><c>true</c> if active state is high.</param>
+            <param name="VerticalSyncPolarity"><c>true</c> if active state is high.</param>
+            <param name="PixelPolarity"><c>true</c> if your LCD clocks data on the rising edge of the LCD clock.</param>
+            <param name="HorizontalSyncPulseWidth">Horizontal Sync pulse width in clock cycles.</param>
+            <param name="HorizontalBackPorch">Horizontal back porch in clock cycles.</param>
+            <param name="HorizontalFrontPorch">Horizontal front porch in clock cycles.</param>
+            <param name="VerticalSyncPulseWidth">Vertical Sync pulse width given by number of lines.</param>
+            <param name="VerticalBackPorch">Vertical back porch given by number of lines.</param>
+            <param name="VerticalFrontPorch">Vertical front porch given by number of lines.</param>
+            <param name="PixelClockDivider">Pixel clock divider.</param>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.Width">
+            <summary>
+            Resolution width.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.Height">
+            <summary>
+            Resolution height.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.PriorityEnable">
+            <summary>
+            Internal LCD bus priority.
+            </summary>
+            <remarks>
+            This is only supported on EMX. By setting this flag to true, the LCD controller will get the highest priority for the processor which will significantly reduce the general performance of the system for other processes. This feature is usually used for displays that require very high refresh rates such as VGA displays.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.OutputEnableIsFixed">
+            <summary>
+            <c>true</c> if LCD enable is a fixed state. <c>false</c> if LCD enable is managed by LCD controller.
+            </summary>
+            <remarks>
+            Not supported on ChipworkX.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.OutputEnablePolarity">
+            <summary>
+            <c>true</c> if active state is high.
+            </summary>
+            <remarks>
+            Not supported on ChipworkX.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.HorizontalSyncPolarity">
+            <summary>
+            <c>true</c> if active state is high.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.VerticalSyncPolarity">
+            <summary>
+            <c>true</c> if active state is high.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.PixelPolarity">
+            <summary>
+            <c>true</c> if your LCD clocks data on the rising edge of the LCD clock.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.HorizontalSyncPulseWidth">
+            <summary>
+            Horizontal Sync pulse width in clock cycles.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.HorizontalBackPorch">
+            <summary>
+            Horizontal back porch in clock cycles.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.HorizontalFrontPorch">
+            <summary>
+            Horizontal front porch in clock cycles.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.VerticalSyncPulseWidth">
+            <summary>
+            Vertical Sync pulse width given by number of lines.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.VerticalBackPorch">
+            <summary>
+            Vertical back porch given by number of lines.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.VerticalFrontPorch">
+            <summary>
+            Vertical front porch given by number of lines.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.LCD.Configurations.PixelClockDivider">
+            <summary>
+            Pixel clock divider.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface">
+            <summary>
+            Debug interface configurations.
+            </summary>
+            <remarks>
+            You can change the debug interface for TinyBooter and TinyCLR. TinyBooter does NOT support Sockets debugging.<br/>
+            This configuration may be overrided by hardware, please refer to your platform user manual.<br/>
+            <br/>
+            <strong style="color:blue">USBizi</strong><br/>
+            Not supported. It can be changed using hardware, please refer to user manual.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Set(GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port,GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port)">
+            <summary>
+            Sets NETMF debug interface.
+            </summary>
+            <param name="TinyCLR_DebugInterface">TinyCLR debug interface.</param>
+            <param name="TinyBooter_DebugInterface">TinyBooter debug interface.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.GetCurrent">
+            <summary>
+            Gets the current active debug interface.
+            </summary>
+            <returns>Current debug interface.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port">
+            <summary>
+            Lists the available debug interfaces for .Net Micro Framework.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.COM1">
+            <summary>A supported debug interface.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.COM2">
+            <summary>A supported debug interface.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.COM3">
+            <summary>A supported debug interface.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.COM4">
+            <summary>A supported debug interface.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.USB1">
+            <summary>A supported debug interface.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.Configuration.DebugInterface.Port.Sockets1">
+            <summary>A supported debug interface (Ethernet for example).</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.Configuration.Touch">
+            <summary>
+            Touch LCD configurations.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.Configuration.Touch.UseDefaultInterface(System.Boolean)">
+            <summary>
+            Enables/Disables default touch interface.
+            </summary>
+            <param name="enableDefault"><c>true</c> to use default interface.</param>
+            <returns><c>true</c> if configurations where updated. <c>false</c> if configurations did not change.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.PWM">
+            <summary>
+            Provides PWM functionality.
+            </summary>
+            <remarks>
+            Please refer to your platform documentation for the available PWM pins.<br/>
+            <br/>
+            <strong style="color:blue">USBizi</strong><br/>
+            All PWM pins share the same timer. Changing one PWM frequency will affect the others.<br/>
+            <br/>
+            <strong style="color:blue">EMX</strong><br/>
+            Some PWM pins share the same timer. Changing one PWM frequency will affect the others.<br/>
+            PWM0 and PWM 2 share the same timer.<br/>
+            PWM1, PWM3, PWM4 and PWM5 share the same timer.<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            Only one channel is available (0) with four frequencies: 391 KHz, 195 KHz, 98 KHz and 49 KHz.<br/>
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.Dispose">
+            <summary>
+            Disposes the pin and marks it as available again.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.#ctor(GHIElectronics.NETMF.Hardware.PWM.Pin)">
+            <summary>
+            Creates a new PWM pin.
+            </summary>
+            <param name="pin">Needed pin.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.Set(System.Int32,System.Byte)">
+            <summary>
+            Sets the PWM's frequency and duty cycle.
+            </summary>
+            <param name="freq_Hz">Required frequency in Hertz.</param>
+            <param name="dutyCycle">Duty cycle percentage. 0 to 100 inclusive.</param>
+            <remarks>
+            Setting the frequency to 0 would stop the PWM.<br/>
+            0% and 100% are valid values for the duty cycle.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.Set(System.Boolean)">
+            <summary>
+            Sets the PWM pin as high or low.
+            </summary>
+            <param name="pinState"><c>true</c> if high.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.PWM.SetPulse(System.UInt32,System.UInt32)">
+            <summary>
+            Sets the PWM using the period time and high time.
+            </summary>
+            <param name="period_nanosecond">Period of the signal in nano seconds.</param>
+            <param name="highTime_nanosecond">High time of the signal in nano seconds.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.PWM.Pin">
+            <summary>
+            Lists the PWM pins.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM0">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM1">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM2">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM3">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM4">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM5">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM6">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM7">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM8">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM9">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM10">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM11">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM12">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM13">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM14">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.PWM.Pin.PWM15">
+            <summary>PWM pin.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.BatteryRAM">
+            <summary>
+            Battery powered general purpose RAM.
+            </summary>
+            <remarks>
+            This is a general purpose RAM that is powered using a backup battery. Therefore, it does not lose the data when the power is off.<br/>
+            It starts at address 0 and the size is platform dependant. Please refer to your platform user manual for details on requirements and connections.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            The available size is 2 KB. They ONLY can be accessed (read/write) as 4 bytes multiple (starting address, offset and size).<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            The available size is 16 bytes. They ONLY can be accessed (read/write) as 4 bytes multiple (starting address, offset and size).
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.BatteryRAM.Write(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes to the Battery RAM.
+            </summary>
+            <param name="address">Starting address in the battery ram.</param>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset in Buffer.</param>
+            <param name="count">Count of bytes.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.BatteryRAM.Read(System.UInt32,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads from the Battery RAM.
+            </summary>
+            <param name="address">Starting address in the battery ram.</param>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset in Buffer.</param>
+            <param name="count">Count of bytes.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.OutputCompare">
+            <summary>
+            Provides output compare functionality.
+            </summary>
+            <remarks>
+            This is available on any pin. It is done using interrupts and not real hardware output compare. Therefore, it may not be 100% accurate. Also, there is a limit in how much time the pin can toggle. Values are platform dependent.<br/>
+            </remarks>
+            <example>
+            Using output compare.
+            <code>
+<![CDATA[
+// Let's create a signal which is low for 200 micro seconds, high for 300 micro seconds and then low for 200 micro seconds.
+bool initValue1 = true; // pin is high
+uint[] timings1 = new uint[]{200, 300, 200};
+OutputCompare oc1 = new OutputCompare(myPin1, initValue1, 10);
+oc1.Set(false, timings1, 0, 3, false);
+
+// Let's create a PWM signal, that is high for 500 micro seconds and low for 300 micro seconds. Note the usage of the bufferRepeating option.
+bool initValue2 = false; // pin is low
+uint[] timings2 = new uint[] {500, 300};
+OutputCompare oc2 = new OutputCompare(myPin2, initValue2, 2);
+oc1.Set(true, timings2, 0, 2, true);
+]]>
+</code>
+            Creating a UART transmitter.
+            <code>
+<![CDATA[
+// The following will do a software UART, 8N1, 2400 baudrate.
+const int MAX_TIMINGS_BUFFER_SIZE = 10;
+OutputCompare oc = new OutputCompare(pin, true, MAX_TIMINGS_BUFFER_SIZE);
+uint[] buffer = new uint[MAX_TIMINGS_BUFFER_SIZE];
+const int BAUD_RATE = 2400;
+const int BIT_TIME_US = 1 * 1000 * 1000 / BAUD_RATE;
+int BYTE_TIME_MS = (int)System.Math.Ceiling((double)BIT_TIME_US * MAX_TIMINGS_BUFFER_SIZE / 1000);
+
+void SendByte(byte b)
+{
+    bool currentPinState;
+    int currentBufferIndex = 0;
+    uint currentStateTiming;
+
+    // start bit
+    currentPinState = false;
+    currentStateTiming = BIT_TIME_US;
+
+    // data bits
+    for (int i = 0; i < 8; i++) 
+    {
+        bool neededState = (b & (1 << i)) != 0;
+
+        if (neededState != currentPinState)
+        {
+            buffer[currentBufferIndex] = currentStateTiming;
+            currentStateTiming = BIT_TIME_US;
+            currentPinState = neededState;
+            currentBufferIndex++;
+        }
+        else
+        {
+            currentStateTiming += BIT_TIME_US;
+        }
+    }
+    
+    // stop bit
+    if (currentPinState != true)
+    {
+        buffer[currentBufferIndex] = currentStateTiming;
+        currentBufferIndex++;
+    }
+
+    oc.Set(false, buffer, 0, currentBufferIndex, false);
+
+    // wait till data is sent
+    Thread.Sleep(BYTE_TIME_MS);
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OutputCompare.Dispose">
+            <summary>
+            Disposes the pin and marks it as available again.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OutputCompare.#ctor(Microsoft.SPOT.Hardware.Cpu.Pin,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new output compare pin.
+            </summary>
+            <param name="pin">Pin.</param>
+            <param name="initialValue">Initial pin value.</param>
+            <param name="MAX_TIMINGS_BUFFER_SIZE">Maximum number of timings.</param>
+            <remarks>
+            <c>MAX_TIMINGS_BUFFER_SIZE</c> limits the number of timings that are set. For example, if you set this value to 10, you can send between 0 and 10 toggle timings in the <c>Set</c> method.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OutputCompare.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OutputCompare.Set(System.Boolean)">
+            <summary>
+            Sets the current pin state.
+            </summary>
+            <param name="pinState">Pin state.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OutputCompare.Set(System.Boolean,System.UInt32[],System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            Sets pin state transition times.
+            </summary>
+            <param name="initialValue">Initial pin value.</param>
+            <param name="timingsBuffer_us">Toggle timings.</param>
+            <param name="bufferOffset">Offset.</param>
+            <param name="bufferCount">Count.</param>
+            <param name="bufferRepeating">State transitions loop again when done.</param>
+            <remarks>
+            First, the pin is set to <c>initialValue</c>. After <c>timingsBuffer_us[bufferOffset + 0]</c> micro seconds, the pin will toggle its state and so on until <c>bufferCount</c> is reached. When done, if <c>bufferRepeating</c> is <c>true</c>, the signal will get regenerated automatically.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.OutputCompare.IsActive">
+            <summary>
+            Output Compare toggling active state. 
+            </summary>
+            <remarks>
+            This flag is <c>true</c> when the OC is processing the timings buffer to toggle the pin.<br/>
+            For example, assume the used toggle timings are [300, 500, 400] and OutputCompare.Set(...) is called then:<br/>
+            <code>
+            OutputCompare.Set(...);
+            while(OutputCompare.IsActive) // This will be true for 300 + 500 + 400 micro seconds
+            ;
+            </code>
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.Register">
+            <summary>
+            Provide register access.
+            </summary>
+            <remarks>
+            Addresses access might be restricted on certain platforms.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            Denoting '[' as inclusive and ')' as exclusive, only register access (4 bytes) with the following address ranges are valid:<br/>
+            [0x3FFFC000 to 0x3FFFC0A0),<br/>
+            [0xE0000000 to 0xE0000014),<br/>
+            [0xE0004000 to 0xE004C000),<br/>
+            [0xE0068000 to 0xE0090000),<br/>
+            [0xE01FC000 to 0xE0200000),<br/>
+            [0xFFE00000 to 0xFFE00FF8],<br/>
+            [0xFFE0C000 to 0xFFE10000],<br/>
+            [0xFFE10000 to 0xFFE10030],<br/>
+            [0xFFE10200 to 0xFFE103FC],<br/>
+            [0xFFE10800 to 0xFFE10BFC],<br/>
+            [0xFFE10C00 to 0xFFE10C2C].<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            No current restrictions.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.#ctor(System.UInt32)">
+            <summary>
+            Creates a new register.
+            </summary>
+            <param name="address">Address.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.Write(System.UInt32)">
+            <summary>
+            Writes a value to the register.
+            </summary>
+            <param name="value">Value to be written.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.Read">
+            <summary>
+            Reads the register's value.
+            </summary>
+            <returns>Value of the register.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.SetBits(System.UInt32)">
+            <summary>
+            Sets certain bits in the register using a mask.
+            </summary>
+            <param name="mask">Register value mask.</param>
+            <remarks>
+            Bits of value 1 in mask are set in the register.<br/>
+            Bits of value 0 in mask are not changed.<br/>
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.ClearBits(System.UInt32)">
+            <summary>
+            Clears certain bits in the register using a mask.
+            </summary>
+            <param name="mask">Register value mask.</param>
+            <remarks>
+            Bits of value 1 in mask are cleared in the register.<br/>
+            Bits of value 0 in mask are not changed.<br/>
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Register.ToggleBits(System.UInt32)">
+            <summary>
+            Toggles certain bits in the register using a mask.
+            </summary>
+            <param name="mask">Register value mask.</param>
+            <remarks>
+            Bits of value 1 in mask are toggled in the register.<br/>
+            Bits of value 0 in mask are not changed.<br/>
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.RealTimeClock">
+            <summary>
+            Access to the internal Real Time Clock.
+            </summary>
+            <remarks>
+            With Real Time Clock, you can keep track of date and time even if the power is off. The time is running using an external backup battery and can last for years.<br/>
+            The RTC time is not related to the NETMF time. You have to set the time manually at startup, see examples.<br/>
+            To verify that a valid time is stored (battery is still running), the user has to make some checks for validations. For example:<br/>
+            - The battery can be monitored.<br/>
+            - <c>RealTimeClock.GetTime()</c> might throw an exception because of incorrect time.<br/>
+            - <c>RealTimeClock.GetTime()</c> will return infeasible dates that the user can check, such as, a date that is less than 2010.<br/>
+            - Store a checksum in the <c>BatteryRAM</c>. The number will only be correct and stay the same if the connected battery is alive.<br/>
+            <br/>
+            Please refer to your platform user manual for details on requirements and hardware connections.<br/>
+            </remarks>
+            <example>
+            <code>
+<![CDATA[
+using System;
+using Microsoft.SPOT.Hardware;
+using GHIElectronics.NETMF.Hardware;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // To keep track of time, set it at the beginning of your application from the RTC.
+
+            // If the time was never set before, set it to a certain date and time.
+            bool timeValid = false;
+            if (timeValid == false)  
+                RealTimeClock.SetTime(new DateTime(2010, 03, 01, 12, 0, 0, 0));
+            /////
+            
+            // You have to set NETMF time from RTC
+            Utility.SetLocalTime(RealTimeClock.GetTime());
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.RealTimeClock.SetTime(System.DateTime)">
+            <summary>
+            Sets RTC.
+            </summary>
+            <param name="time">Date and time.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.RealTimeClock.GetTime">
+            <summary>
+            Gets RTC.
+            </summary>
+            <returns>Date and time.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.RealTimeClock.SetAlarm(System.DateTime)">
+            <summary>
+            Sets the alarm.
+            </summary>
+            <param name="time">Date and time.</param>
+            <remarks>
+            This feature lets the user specify an alarm time. This can be used to drive the ALARM pin high or wakeup the processor from hibernation.<br/>
+            The alarm pin is an RTC controlled output. This is a 1.8 V pin. The pin goes low when the alarm time is specified. It goes HIGH when an RTC alarm is generated.<br/>
+            The RTC can supply battery power to the ALARM pin and that can be used by external hardware to restore module power and resume operation.<br/>
+            <br/>
+            Only EMX and USBizi support this functionality.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.RealTimeClock.IsTimeValid">
+            <summary>
+            RTC is valid if it was set before and still running using a charged battery.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.OneWire">
+            <summary>
+            Provides 1-Wire functionality.
+            </summary>
+            <remarks>
+            One Wire communications can be done on any available pin. 
+            </remarks>
+            <example>
+            The following example is used with Maxim Digital Thermometer DS18B20.<br/>
+            It assumes only one slave is connected to the 1-wire bus and the DS18B20 is powered by an external power supply on VDD.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.Hardware;
+
+namespace Test
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Change this your correct pin!
+            Cpu.Pin myPin = (Cpu.Pin)2;
+
+            OneWire ow = new OneWire(myPin);
+            ushort temperature;
+
+            // read every second
+            while (true)
+            {
+                if (ow.Reset())
+                {
+                    ow.WriteByte(0xCC);     // Skip ROM
+                    ow.WriteByte(0x44);     // Start temperature conversion
+
+                    while (ow.ReadByte() == 0)
+                        ;   // wait while busy
+
+                    ow.Reset();
+                    ow.WriteByte(0xCC);     // skip ROM
+                    ow.WriteByte(0xBE);     // Read Scratchpad
+
+                    temperature = ow.ReadByte();       // LSB 
+                    temperature |= (ushort)(ow.ReadByte() << 8); // MSB
+
+                    Debug.Print("Temperature: " + temperature / 16);
+                    Thread.Sleep(1000);
+                }
+                else
+                {
+                    Debug.Print("Device is not detected.");
+                }
+
+                Thread.Sleep(1000);
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Dispose">
+            <summary>
+            Disposes the 1-wire pin and marks it as available again.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.#ctor(Microsoft.SPOT.Hardware.Cpu.Pin)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="pin">Pin.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.CalculateCRC(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Calculates 8-bit CRC using 1-wire specification.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>CRC.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.CalculateCRC16(System.Byte[],System.Int32,System.Int32,System.UInt16)">
+            <summary>
+            Calculates 16-bit CRC using 1-wire specification.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <param name="seed">CRC seed.</param>
+            <returns>CRC.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Reset">
+            <summary>
+            Resets 1-wire bus.
+            </summary>
+            <returns><c>true</c> if devices are detected.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.WriteBit(System.Byte)">
+            <summary>
+            Writes one bit.
+            </summary>
+            <param name="value">Writes LSb.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.ReadBit">
+            <summary>
+            Reads one bit.
+            </summary>
+            <returns>The bit is stored as LSb.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.WriteByte(System.Byte)">
+            <summary>
+            Writes a byte.
+            </summary>
+            <param name="value">value.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.ReadByte">
+            <summary>
+            Reads a byte.
+            </summary>
+            <returns>value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes a block of bytes.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads a block of bytes.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Search_Restart">
+            <summary>
+            Restarts devices search on 1-wire bus.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Search_GetNextDevice(System.Byte[])">
+            <summary>
+            Gets next available 1-wire device.
+            </summary>
+            <remarks>
+            This method obtains the next available 8-byte unique ROM Registration Number. 
+            </remarks>
+            <param name="romRegistrationNumber">ROM Registration Number. The provided buffer size must be at least 8 bytes.</param>
+            <returns><c>true</c> if next device found.<br></br><c>false</c> if no more devices are available.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.OneWire.Search_IsDevicePresent(System.Byte[])">
+            <summary>
+            Detects device presence.
+            </summary>
+            <remarks>
+            Detects if the device with provided ROM Registration Number exists.
+            </remarks>
+            <param name="romRegistrationNumber">ROM Registration Number. The buffer size must be at least 8 bytes.</param>
+            <returns><c>true</c> if device found.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog">
+            <summary>
+            Provides Watchdog functionality.
+            </summary>
+            <remarks>
+            Watchdog is used to reset the system if it enters an erroneous state. The Watchdog is enabled with a specified timeout. The user must keep resetting the Watchdog time counter within this timeout interval or otherwise the system will reset.<br/>
+            <c>Watchdog.LastResetCause</c> gives you information about the last known reset cause. Note that this flag is automatically reset after it is read.<br/>
+            <br/>
+            This should only be  used by advanced users.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            <strong>Note: </strong> Once the Watchdog is enabled, it cannot be disabled.<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            <strong>Note: </strong> Once the Watchdog is enabled, it cannot be disabled. Also, it cannot be re-enabled with a different timeout.<br/>
+            </remarks>
+            <example>
+            This example will reset the system if it becomes unresponsive. This is determined when the C# thread that resets the Watchdog time counter is not working anymore.
+            <code>
+<![CDATA[
+using System.Threading;
+using GHIElectronics.NETMF.Hardware.LowLevel;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            // Timeout 5 seconds
+            uint timeout = 1000 * 5;
+
+            // Enable Watchdog
+            Watchdog.Enable(timeout);
+
+            // Start a time counter reset thread
+            WDTCounterReset = new Thread(WDTCounterResetLoop);
+            WDTCounterReset.Start();
+
+            // ....
+
+            // If we exit the program, the thread will stop working and the system will reset!
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static Thread WDTCounterReset;
+        static void WDTCounterResetLoop()
+        {
+            while (true)
+            {
+                // reset time counter every 3 seconds
+                Thread.Sleep(3000);
+
+                Watchdog.ResetCounter();
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.Enable(System.UInt32)">
+            <summary>
+            Enables the Watchdog.
+            </summary>
+            <param name="timeout_ms">Timeout in milli-seconds.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.Disable">
+            <summary>
+            Disables the Watchdog.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.ResetCounter">
+            <summary>
+            Resets the Watchdog time counter.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.LastResetCause">
+            <summary>
+            Last known reset cause.
+            </summary>
+            <remarks>
+            This can be used for troubleshooting when the system resets. Note that this flag is automatically reset after it is read.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            Works correctly.<br/>
+            <br/>
+            <strong style="color:blue">ChipworkX</strong><br/>
+            Currently not supported.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.MAX_TIMEOUT">
+            <summary>
+            Maximum supported timeout.
+            </summary>
+            <remarks>
+            Value is platform dependant.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.ResetCause">
+            <summary>
+            Cause of system reset.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.ResetCause.HardReset">
+            <summary>
+            Hard reset.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.LowLevel.Watchdog.ResetCause.WatchdogReset">
+            <summary>
+            Reset because of the Watchdog timer elapsing.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.AnalogOut">
+            <summary>
+            Provides the ability to set a value to an analog output pin.
+            </summary>
+            <remarks>
+            Please refer to your platform documentation for the available analog pins. The analog pin is initialized with the default platform resolution.<br/>
+            <br/>
+            <strong style="color:blue">EMX and USBizi</strong><br/>
+            Only one channel is available (0). Default resolution is 10 bits with analog value between [0, 1023].
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.Dispose">
+            <summary>
+            Disposes the pin and marks it as available again.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.#ctor(GHIElectronics.NETMF.Hardware.AnalogOut.Pin)">
+            <summary>
+            Creates a new analog pin.
+            </summary>
+            <param name="aout">Needed analog pin.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.SetLinearScale(System.Int32,System.Int32)">
+            <summary>
+            Scales the analog value, when it is set, automatically into a specific range.
+            </summary>
+            <param name="minValue">Min value.</param>
+            <param name="maxValue">Max value.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.Set(System.Int32)">
+            <summary>
+            Sets the current analog value.
+            </summary>
+            <param name="value">Value.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.AnalogOut.Set(System.Byte[],System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Sets analog output values at a given rate.
+            </summary>
+            <param name="data">Data.</param>
+            <param name="offset">Data offset.</param>
+            <param name="count">Data count.</param>
+            <param name="dataRate">Data rate in Hertz.</param>
+            <remarks>
+            Use this to output values at a give rate. The analog output will be set to the first value for a duration of (1 / dataRate). Then it will be set to the second value and so on.<br/>
+            Note that this method is blocking. It returns when the data count is done.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.AnalogOut.Pin">
+            <summary>
+            Lists the analog output pins.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.AnalogOut.Pin.Aout0">
+            <summary>Analog output pin.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.CAN">
+            <summary>
+            Provides Controller Area Network functionality.
+            </summary>
+            <remarks>
+            This class is working correctly and can be used but it will be changed or removed in future releases because GHI is working on new CAN drivers.<br/>
+            Only EMX and USBizi has this support.
+            </remarks>
+            <example>
+            This demonstrates how to use the CAN class.
+            <code>
+<![CDATA[
+using GHIElectronics.NETMF.Hardware;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            int T1, T2, BRP;
+
+            // These numbers were calculated using the calculator on this link:
+            // http://www.kvaser.com/can/protocol/index.htm
+            // We used the very first value from the calculator output
+
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // Bitrate 250Kbps
+            // CLK = 72 Mhz, with BRP = 12 -> 6Mhz CAN clock
+            // 6Mhz/250Kbps = 24 TQ
+            // T1 = 16 minus 1 for sync = 15
+            // T2 = 8
+            // 15 + 1 + 8 = 24 TQs which is what we need
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // uncomment to use this bit timing
+            //BRP = 12;
+            //T1 = 15;
+            //T2 = 8;
+
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // Bitrate 125Kbps
+            // CLK = 72 Mhz, with BRP = 24 -> 3Mhz CAN clock
+            // 3Mhz/125Kbps = 24 TQ
+            // T1 = 16 minus 1 for sync = 15
+            // T2 = 8
+            // 15 + 1 + 8 = 24 TQs which is what we need
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            // uncomment to use this bit timing
+            BRP = 24;
+            T1 = 15;
+            T2 = 8;
+
+            // For 500Kbps you can use BRP=6 and for 1Mbps you can use BRP=3 ...and so on
+
+            // Use channel 1
+            CAN can = new CAN(CAN.Channel.Channel_1, (uint)(((T2 - 1) << 20) | ((T1 - 1) << 16) | ((BRP - 1) << 0)));
+
+            // This is the message
+            CAN.Message message = new CAN.Message();
+
+            // We only use one message, more can be added.
+            CAN.Message[] msgList = new CAN.Message[] { message };
+
+            // Random data
+            message.data[0] = 1;
+            message.data[1] = 2;
+            message.data[2] = 3;
+            message.data[3] = 4;
+            message.data[4] = 5;
+            message.data[5] = 6;
+            message.data[6] = 7;
+            message.data[7] = 8;
+
+            message.DLC = 8;
+            message.ArbID = 0x55;
+            message.isEID = true;
+            message.isRTR = false;
+
+            // send a message
+            int sentCount;
+            if (can.IsTxBufferAvailable())
+                sentCount = can.PostMessages(msgList);
+
+            // wait for response
+            while (can.GetRxQueueCount() == 0)
+                ;
+
+            int receivedCount = can.GetMessages(msgList);
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.#ctor(GHIElectronics.NETMF.Hardware.CAN.Channel,System.UInt32)">
+            <summary>
+            Creates CAN.
+            </summary>
+            <param name="channel">Channel.</param>
+            <param name="bitrate">bitrate.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.#ctor(GHIElectronics.NETMF.Hardware.CAN.Channel,System.UInt32,System.Int32)">
+            <summary>
+            Creates CAN.
+            </summary>
+            <param name="channel">Channel.</param>
+            <param name="bitrate">bitrate.</param>
+            <param name="receiveMsgBufferSize">Internal receive buffer size. Maximum is 38,400.</param>
+            <remarks>
+            The user can specify the internal receive buffer size. This is useful in a very busy system to eliminate possible messages lost.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.GetMessages(GHIElectronics.NETMF.Hardware.CAN.Message[])">
+            <summary>
+            Gets CAN messages.
+            </summary>
+            <param name="msg">User provided array to store messages.</param>
+            <returns>Number of messages read.</returns>
+            <remarks>
+            The number of read messages is the minimum of the available messages and size of the passed <c>CAN.Message[]</c>.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.PostMessages(GHIElectronics.NETMF.Hardware.CAN.Message[])">
+            <summary>
+            Posts CAN messages.
+            </summary>
+            <param name="msg">Messages to be sent.</param>
+            <returns>Number of sent messages.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.IsTxBufferAvailable">
+            <summary>
+            Determines if space is available in the transmit queue to hold a new CAN message.
+            </summary>
+            <remarks>The user can check if space is available before sending the next CAN message.</remarks>
+            <returns><b>true</b> if space is available in the transmit queue.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.GetRxQueueCount">
+            <summary>
+            Returns the count of messages in the Receive Queue.
+            </summary>
+            <returns>The count of messages in the receive queue.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.IsTxQueueEmpty">
+            <summary>
+            Determines if the Transmit Queue is empty.
+            </summary>
+            <remarks>The transmit queue is empty when all pending messages has been sent.</remarks>
+            <returns><b>true</b> if the transmit queue is empty.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Hardware.CAN.Dispose">
+            <summary>
+            Disposes CAN and marks the Pins as available again.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.CAN.Channel">
+            <summary>
+            Lists the available CAN channels.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Channel.Channel_1">
+            <summary>CAN channel.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Channel.Channel_2">
+            <summary>CAN channel.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.CAN.Message">
+            <summary>
+            Provides the various components of a CAN message.
+            </summary>
+            <remarks>
+            Stores the transmitted/received CAN message.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Message.data">
+            <summary>
+            The CAN message data.
+            </summary>
+            <remarks>
+            The message data is a maximum of 8 bytes. The user store data directly before trasmitting.<br/>
+            When receiving data, the user can read this field directly.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Message.ArbID">
+            <summary>
+            CAN message ID.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Message.DLC">
+            <summary>
+            CAN message data count.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Message.isRTR">
+            <summary>
+            Specifies if the message is RTR (Remote Transmission Request).
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.CAN.Message.isEID">
+            <summary>
+            Specifies if the message is EID (Extended ID - 29 bit identifier). Otherwise, it is 11 bit identifier.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Hardware.USBizi</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Hardware.USBizi">
+            <summary>
+            Exposes USBizi specific functionality.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.USBizi.Pin">
+            <summary>
+            Provides Pin definitions for USBizi.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.GPIO_NONE">
+            <summary>A value indicating that no GPIO pin is specified.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO0">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO1">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO2">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO3">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO4">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO5">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO6">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO7">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO8">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO9">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO10">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO11">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO12">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO13">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO14">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO15">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO16">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO17">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO18">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO19">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO20">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO21">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO22">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO23">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO24">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO25">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO26">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO27">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO28">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO29">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO30">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO31">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO32">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO33">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO34">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO35">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO36">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO37">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO38">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO39">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO40">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO41">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO42">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO43">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO44">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO45">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO46">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO47">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO48">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO49">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO50">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO51">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO52">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO53">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO54">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO55">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO56">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO57">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO58">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO59">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO60">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO61">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO62">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO63">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO64">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO65">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO66">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO67">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO68">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO69">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO70">
+            <summary>GPIO pin.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.USBizi.Pin.IO71">
+            <summary>GPIO pin.</summary>
+        </member>
+    </members>
+</doc>

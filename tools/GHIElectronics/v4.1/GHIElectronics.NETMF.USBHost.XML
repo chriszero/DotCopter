@@ -1,0 +1,1999 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.USBHost</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_SerialUSBEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_SerialUSBEventHandler">
+            <summary>
+            A handler for Serial USB callbacks.
+            </summary>
+            <param name="sender">The associated <c>USBH_SerialUSB</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_SerialUSB">
+            <summary>
+            Provides access functionalities for the connected Serial USB device.
+            </summary>
+            <remarks>
+            This class makes interfacing with USB-To-Serial devices similar to regular COM ports. Note, however, that not all features are supported and it varies with the USB device.<br/>
+            <br/>
+            <b>FTDI:</b>
+            <ul>
+            <li>No known issues.</li>
+            </ul>
+            <b>SiLabs:</b>
+            <ul>
+            <li>No handshake support.</li>
+            <li>Serial settings cannot be changed after creating the object.</li>
+            </ul>
+            <b>Prolific:</b>
+            <ul>
+            <li>No handshake support.</li>
+            <li>Serial settings cannot be changed after creating the object.</li>
+            </ul>
+            <b>CDC:</b>
+            <ul>
+            <li>No handshake support.</li>
+            </ul>
+            <br/>
+            If some of them cannot be recognized by the hardware, you can still force USB host to recognize them as in examples provided. Also, there are two Prolific drivers for different versions of the hardware. If one of them does not work, you can force USB host to use the other one.
+            </remarks>
+            <example>
+            Connecting a FTDI and SiLabs serial devices. USB host recognized the FTDI but not the SiLabs one. Therefore, we will force USB host to use the SiLabs driver.
+            <code>
+<![CDATA[
+using System;
+using System.Text;
+using System.Threading;
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    class Program
+    {
+        static USBH_SerialUSB serialUSB;
+        static Thread serialUSBThread; // Prints data every second
+
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            Debug.Print("Device connected");
+
+            switch (device.TYPE)
+            {
+                case  USBH_DeviceType.Serial_FTDI: // FTDI connected
+                    serialUSB = new USBH_SerialUSB(device, 9600, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One);
+                    serialUSB.Open();
+                    serialUSBThread = new Thread(SerialUSBThread);
+                    serialUSBThread.Start();
+
+                    break;
+
+                case USBH_DeviceType.Unknown: // SiLabs but not recognized
+                    // force SiLabs
+                    USBH_Device silabs = new USBH_Device(device.ID, device.INTERFACE_INDEX, USBH_DeviceType.Serial_SiLabs, device.VENDOR_ID, device.PRODUCT_ID, device.PORT_NUMBER);
+                    serialUSB = new USBH_SerialUSB(silabs, 9600, System.IO.Ports.Parity.None, 8, System.IO.Ports.StopBits.One);
+                    serialUSB.Open();
+                    serialUSBThread = new Thread(SerialUSBThread);
+                    serialUSBThread.Start();
+
+                    break;
+            }
+        }
+
+        static void SerialUSBThread()
+        {
+            // Print "Hello World!" every second.
+            byte[] data = Encoding.UTF8.GetBytes("Hello World!\r\n");
+            while(true)
+            {
+                Thread.Sleep(1000);
+
+                serialUSB.Write(data, 0, data.Length);
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device,System.Int32,System.IO.Ports.Parity,System.Int32,System.IO.Ports.StopBits)">
+            <summary>
+            Creates a new Serial USB device.
+            </summary>
+            <param name="device">USB device.</param>
+            <param name="baudrate">Baudrate.</param>
+            <param name="parity">Parity.</param>
+            <param name="dataBits">Data bits.</param>
+            <param name="stopBits">Stop bits.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes data to Serial USB.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads data from Serial USB.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes read.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.DiscardInBuffer">
+            <summary>
+            Discards data in input buffer.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.DiscardOutBuffer">
+            <summary>
+            Discards data in output buffer.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Flush">
+            <summary>
+            Writes any pending buffered data.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Open">
+            <summary>
+            Opens Serial USB.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Disconnected">
+            <summary>
+            The event is called when the SerialUSB is disconnected.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.WriteTimeout">
+            <summary>
+            Timeout for write operation.
+            </summary>
+            <remarks>
+            By default, this is 500 ms.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.ReadTimeout">
+            <summary>
+            Timeout for read operation.
+            </summary>
+            <remarks>
+            By default, this is 500 ms.
+            </remarks>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Baudrate">
+            <summary>
+            Sets/Gets Baudrate.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.DataBits">
+            <summary>
+            Sets/Gets DataBits.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Handshake">
+            <summary>
+            Sets/Gets Handshake.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.Parity">
+            <summary>
+            Sets/Gets Parity.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_SerialUSB.StopBits">
+            <summary>
+            Sets/Gets StopBits.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors">
+            <summary>
+            USB descriptors.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.USBH_Descriptor">
+            <summary>
+            A USB descriptor.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device">
+            <summary>
+            Device Descriptor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bLength">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bDescriptorType">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bcdUSB">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bDeviceClass">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bDeviceSubClass">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bDeviceProtocol">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bMaxPacketSize0">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.idVendor">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.idProduct">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bcdDevice">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.iManufacturer">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.iProduct">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.iSerialNumber">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Device.bNumConfigurations">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration">
+            <summary>
+            Configuration Descriptor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bLength">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bDescriptorType">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.wTotalLength">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bNumInterfaces">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bConfigurationValue">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.iConfiguration">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bmAttributes">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.bMaxPower">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.auxiliaryDescriptors">
+            <summary>Descriptor member. Additional Descriptors.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Configuration.interfaces">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface">
+            <summary>
+            Interface Descriptor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bLength">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bDescriptorType">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bInterfaceNumber">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bAlternateSetting">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bNumberEndpoints">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bInterfaceClass">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bInterfaceSubclass">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.bInterfaceProtocol">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.iInterface">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.auxiliaryDescriptors">
+            <summary>Descriptor member. Additional Descriptors.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Interface.endpoints">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint">
+            <summary>
+            Endpoint Descriptor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.bLength">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.bDescriptorType">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.bEndpointAddress">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.bmAttributes">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.wMaxPacketSize">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.bInterval">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint.auxiliaryDescriptors">
+            <summary>Descriptor member. Additional Descriptors.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.ExtendedEndpoint">
+            <summary>
+            Endpoint Descriptor with addional synch info.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.ExtendedEndpoint.bRefresh">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.ExtendedEndpoint.bSynchAddress">
+            <summary>Descriptor member.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Auxiliary">
+            <summary>
+            Represents additional descriptors.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Auxiliary.bLength">
+            <summary>
+            bLength.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Auxiliary.bDescriptorType">
+            <summary>
+            bDescriptorType.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Descriptors.Auxiliary.payLoad">
+            <summary>
+            Data Payload, excludes bLength and bDescriptorType.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseButton">
+            <summary>
+            Lists the mouse buttons.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButton.Left">
+            <summary>Left mouse button.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButton.Middle">
+            <summary>Middle mouse button.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButton.Right">
+            <summary>Right mouse button.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButton.XButton1">
+            <summary>Extended mouse button 1.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButton.XButton2">
+            <summary>Extended mouse button 2.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseButtonState">
+            <summary>
+            Lists the available button states.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButtonState.Pressed">
+            <summary>
+            Button is pressed.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseButtonState.Released">
+            <summary>
+            Button is released.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseCursor">
+            <summary>
+            Provides cursor postion of the mouse.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseCursor.X">
+            <summary>
+            The X position of the cursor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseCursor.Y">
+            <summary>
+            The Y position of the cursor.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseEventHandler">
+            <summary>
+            A handler for Mouse callbacks.
+            </summary>
+            <param name="sender">The associated <c>USBH_Mouse</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseDeltaPosition">
+            <summary>
+            Provides the change in the mouse position at a given time.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseDeltaPosition.X">
+            <summary>
+            The change in the X position of the mouse.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseDeltaPosition.Y">
+            <summary>
+            The change in the Y position of the mouse.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseDeltaPosition.ScrollWheelValue">
+            <summary>
+            The change in the ScrollWheelValue of the mouse.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_MouseEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseEventArgs.ChangedButton">
+            <summary>
+            The changed mouse button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseEventArgs.ButtonState">
+            <summary>
+            The state of the changed button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_MouseEventArgs.DeltaPosition">
+            <summary>
+            Change in mouse position.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Mouse">
+            <summary>
+            Provides access functionalities for the connected Mouse.
+            </summary>
+            <remarks>
+            Each connected Mouse holds information about the current pressed buttons and the current position.<br/>
+            <br/>
+            <strong style="color:blue">Position</strong><br/>
+            The position can be obtained as a Delta Position (Relative) in an event or as a Cursor associated with it (Absolute). The default Delta Position changes from -512 to +512. This can be changed by calling <c>Scale()</c>.<br/>
+            For Cursor position, by default, is from 0 to 512 for X and Y. This can be changed as well. Changing the scale for certain cursor bounds will have the affect of changing cursor speed.<br/>
+            <br/>
+            <strong style="color:blue">Events</strong><br/>
+            Dela position of the mouse or the state of the buttons are sent as events to the user.<br/>
+            <br/>
+            For this device, there is an internal thread that maintains the device events. The thread priority is set to the highest settings but the user is able to change this thread priority to optimize the program performance.
+            </remarks>
+            <example>
+            Reading mouse movement and buttons.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_Mouse mouse;
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Mouse)
+            {
+                Debug.Print("Mouse Connected");
+                mouse = new USBH_Mouse(device);
+                mouse.MouseMove += MouseMove;
+                mouse.MouseDown += MouseDown;
+            }
+        }
+
+        static void MouseMove(USBH_Mouse sender, USBH_MouseEventArgs args)
+        {
+            Debug.Print("(x, y) = (" + sender.Cursor.X + ", " + sender.Cursor.Y + ")");
+        }
+
+        static void MouseDown(USBH_Mouse sender, USBH_MouseEventArgs args)
+        {
+            Debug.Print("Button down number: " + args.ChangedButton);
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.Cursor">
+            <summary>
+            Provides the current position of a mouse cursor.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Mouse.Finalize">
+            <exclude/>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.LeftButton">
+            <summary>
+            The current state of the Mouse's left button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.RightButton">
+            <summary>
+            The current state of the Mouse's right button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.MiddleButton">
+            <summary>
+            The current state of the Mouse's middle button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.XButton1">
+            <summary>
+            The current state of the Mouse's first extended button.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Mouse.XButton2">
+            <summary>
+            The current state of the Mouse's second extended button.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Mouse.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Creates a new Mouse.
+            </summary>
+            <param name="mouse">Mouse device.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Mouse.Scale(System.Single)">
+            <summary>
+            Scales the X, Y and Wheel delta(change) values.
+            </summary>
+            <param name="value">Everything is scaled by <c>value</c>.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Mouse.SetCursorBounds(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Sets cursor bounds.
+            </summary>
+            <param name="minX">minX.</param>
+            <param name="maxX">maxX.</param>
+            <param name="minY">minY.</param>
+            <param name="maxY">maxY.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Mouse.SetCursor(System.Int32,System.Int32)">
+            <summary>
+            Sets cursor position.
+            </summary>
+            <param name="X">X.</param>
+            <param name="Y">Y.</param>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_Mouse.InternalThreadPriority">
+            <summary>
+            Internal thread priority.
+            </summary>
+            <remarks>
+            For this device, there is an internal thread that maintains the device events. The thread priority is set to the highest settings but the user is able to change this thread priority to optimize the program performance.
+            </remarks>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Mouse.Disconnected">
+            <summary>
+            The event is called when the Mouse is disconnected.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Mouse.MouseDown">
+            <summary>
+            The event is called when a Mouse button is pressed.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Mouse.MouseUp">
+            <summary>
+            The event is called when a Mouse button is released.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Mouse.MouseMove">
+            <summary>
+            The event is called when the Mouse position has changed.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Mouse.MouseWheel">
+            <summary>
+            The event is called when the Mouse wheel is rotated.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_ERROR">
+            <summary>
+            USB host errors.
+            </summary>
+            <remarks>
+            In most cases, the user should not care about USB errors. They are used by GHI, but the user can use this for troubleshooting.
+            </remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.NoError">
+            <summary>No error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.DeviceBusy">
+            <summary>Device is busy. Try communicating with the device at a later time.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.TransferError">
+            <summary>Transfer Error. Try Transferring again.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MaxDeviceUsage">
+            <summary>Maximum available handles reached.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.DeviceNotOnline">
+            <summary>Device is not connected.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.OutOfMemory">
+            <summary>Out of memory.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MaxUsbDevicesReached">
+            <summary>Maximum USB devices connected (127).</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.HIDParserError">
+            <summary>HID parse error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.HIDParserItemNotFound">
+            <summary>HID item not found.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_NoError">
+            <summary>Transfer completed successfully.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_CRC">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_BitStuffing">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_DataToggle">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable. This error means there might be some missing USB packets during communications. In many cases you can ignore this error if missing some packets is not significant. Several USB devices might drop some packets or incorrectly produce this error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_Stall">
+            <summary>Transfer error. USB device refused the transfer. Check sent USB packet.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_NoResponse">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_PIDCheck">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_PIDUnExpected">
+            <summary>Transfer error. Make sure you have enough power for the USB device and connections are stable.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_DataOverRun">
+            <summary>Transfer error. Endpoint returned more data than expected.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_DataUnderRun">
+            <summary>Transfer error. Endpoint returned less data than expected.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_BufferOverRun">
+            <summary>Transfer error. HC received data from endpoint faster than it could be written to system memory.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_BufferUnderRun">
+            <summary>Transfer error. HC could not retrieve data from system memory fast enough to keep up with data USB data rate.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_NotAccessed">
+            <summary>Software use.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.CompletionCode_NotAccessedF">
+            <summary>Software use.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_Error">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_CSW_CommandFailed">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_CSW_StatusPhaseError">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_CSW">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_WrongLunNumber">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_WrongSignature">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_TagMissmatched">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_ERROR.MS_NotReady">
+            <summary>Mass Storage error.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_DeviceConnectionEventHandler">
+            <summary>
+            A handler for connection events.
+            </summary>
+            <param name="device">Associated USB device.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBHostController">
+            <summary>
+            Handles USB host controller.
+            </summary>
+            <remarks>
+            This class provides the ability to access the connected devices to USB Host. The user can get a list of the available devices or subscribe to events whenever a device is connected/disconnected.<br/>
+            Here's how to subscribe to connect/disconnect events.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            // Subscribe to USBH events.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+            USBHostController.DeviceDisconnectedEvent += DeviceDisconnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            Debug.Print("Device connected...");
+            Debug.Print("ID: " + device.ID + ", Interface: " + device.INTERFACE_INDEX + ", Type: " + device.TYPE);
+        }
+
+        static void DeviceDisconnectedEvent(USBH_Device device)
+        {
+            Debug.Print("Device disconnected...");
+            Debug.Print("ID: " + device.ID + ", Interface: " + device.INTERFACE_INDEX + ", Type: " + device.TYPE);
+        }
+    }
+}
+]]>
+</code>
+            You can connect multiple devices and the connect/disconnect events are sent for each device with a unique <c>ID</c> among the other currently connected devices. Some devices might have multiple functions represented as interfaces. These are reported with the same <c>ID</c> but would have different interface numbers in <c>INTERFACE_INDEX</c>.<br/>
+            Also, each device has a <c>TYPE</c> field if the USB host was able to recognize it. Depending on the type, the user can manipulate the device as needed.<br/>
+            <br/>
+            <strong style="color:red">Note: </strong> The user is expected to process devices' events as fast as possible and return from the event method. These are handled in a special thread that may suspend other threads/operations.<br/>
+            <br/>
+            There are several USB drivers supported, for example, mass storage devices, mice, printers... If a driver is not available, you can use <c>USBH_RawDevice</c> access but this requires knowledge of USB specifications.<br/>
+            The following drivers are supported:
+            <ul>
+            <li>USB Hub</li>
+            <li>Mass Storage (Thumb drives, Hard Disks...etc), see notes below.</li>
+            <li>Mouse</li>
+            <li>Keyboard</li>
+            <li>Joystick</li>
+            <li>Printer</li>
+            <li>USB-To-Serial FTDI</li>
+            <li>USB-To-Serial Prolific</li>
+            <li>USB-To-Serial SiLabs</li>
+            <li>USB-To-Serial Communication Device Class (CDC) modem</li>
+            <li>USB Host access on low level</li>
+            </ul>
+            <strong style="color:red">Note: </strong> There is no current Mass Storage class (Thumb drives, Hard Disks...etc). To access them use <c>GHIElectronics.NETMF.IO.PersistentStorage</c>.<br/>
+            <br/>
+            <strong style="color:red">Note: </strong> If you connect multiple USB devices (even for one device), it is highly recommended that you connect a self-powered USB Hub. Specific platforms might not be able to deliver enough power for all connected devices and they may not be recognized correctly or cause the system to restart or crash.<br/>
+            </remarks>
+            <example>
+            Reading a USB mouse.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_Mouse mouse;
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Mouse)
+            {
+                Debug.Print("Mouse Connected");
+                mouse = new USBH_Mouse(device);
+                mouse.MouseMove += MouseMove;
+                mouse.MouseDown += MouseDown;
+            }
+        }
+
+        static void MouseMove(USBH_Mouse sender, USBH_MouseEventArgs args)
+        {
+            Debug.Print("(x, y) = (" + sender.Cursor.X + ", " + sender.Cursor.Y + ")");
+        }
+
+        static void MouseDown(USBH_Mouse sender, USBH_MouseEventArgs args)
+        {
+            Debug.Print("Button down number: " + args.ChangedButton);
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBHostController.NO_INTERFACE_ASSOCIATED">
+            <summary>
+            No known interface is associated with device.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBHostController.GetLastError">
+            <summary>
+            Gets last known USB error.
+            </summary>
+            <returns>USBH_ERROR.</returns>
+            <remarks>
+            If most cases, if an error occurs, it can be obtained from here. The user should not be concerned with the error but it could be used for troubleshooting purposes.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBHostController.GetDevices">
+            <summary>
+            Gets a list of the currently connected devices.
+            </summary>
+            <returns>Currently connected devices.</returns>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBHostController.DeviceConnectedEvent">
+            <summary>
+            Device connected event.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBHostController.DeviceDisconnectedEvent">
+            <summary>
+            Device disconnected event.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBHostController.DeviceBadConnectionEvent">
+            <summary>
+            Device has bad connection. Communications could not be established.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_PrinterEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_PrinterStatus">
+            <summary>
+            Printer status.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_PrinterStatus.NoError">
+            <summary>No error.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_PrinterStatus.Selected">
+            <summary>Printer is selected.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_PrinterStatus.PaperEmpty">
+            <summary>Paper empty.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_PrinterEventHandler">
+            <summary>
+            A handler for Printer callbacks.
+            </summary>
+            <param name="sender">The associated <c>UBSH_Printer</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Printer">
+            <summary>
+            Provides access functionalities for the connected Printer.
+            </summary>
+            <remarks>
+            Using this class you can send any data to the printer. However, this data cannot be just a raw image for example. The user needs to communicate with the printer using its protocol/script which is dependant on the printer type. Some of the printers scripts include PCL (from HP), ESC-P (from Epson.) and Postscript.<br/>
+            <br/>
+            There is an easy way to test any USB printer. First, we need the printer connected to a PC and drivers installed. Select a text or image file on PC and click print. This will bring up the "Print” window. On the drop-down menu, select the printer you need to test and then make sure you click the check-box “Print to file” as shown below.
+            <p><img src="../_PrintWindow.jpg"/></p>
+            Now, click ok and save the the resulting file in an SD card or NETMF resourse. You just have to obtain this file later and send it using <c>USBH_Printer.SendData()</c>.
+            </remarks>
+            <example>
+            Let's assume the created file earlier is a resource. We will obtain it and print it.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_Printer printer;
+        static AutoResetEvent printerConnected = new AutoResetEvent(false);
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // wait for printer to be connectoed.
+            printerConnected.WaitOne();
+
+            // Get file to print
+            byte[] buffer = Resources.GetBytes(Resources.BinaryResources.print);
+
+            // Printing can take a long time, give it a 5 seconds timeout here
+            printer.SendData(buffer, 0, buffer.Length, 5000);
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Printer)
+            {
+                printer = new USBH_Printer(device);
+                printerConnected.Set();
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Printer.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Printer.GetStatus">
+            <summary>
+            Gets current printer status.
+            </summary>
+            <returns>Printer status.</returns>
+            <remarks>
+            Not all printers support this feature.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Printer.Reset">
+            <summary>
+            Soft printer reset.
+            </summary>
+            <remarks>
+            Not all printers support this feature.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Printer.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Creates a new printer.
+            </summary>
+            <param name="device">Printer device.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Printer.SendData(System.Byte[],System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Sends data to the printer.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <param name="timeout">Timeout.</param>
+            <returns>Number of bytes sent.</returns>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Printer.Disconnected">
+            <summary>
+            The event is called when the Printer is disconnected.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickButtonState">
+            <summary>
+            Lists the available button states.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickButtonState.Released">
+            <summary>Button is released.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickButtonState.Pressed">
+            <summary>Button is pressed.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickEventHandler">
+            <summary>
+            A handler for Joystick callbacks.
+            </summary>
+            <param name="sender">The associated <c>USBH_Joystick</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickEventArgs.ChangedButton">
+            <summary>
+            The index of the changed button.
+            </summary>
+            <remarks>The index starts at <b>0</b>.</remarks>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickEventArgs.ButtonState">
+            <summary>
+            The current state of the changed button.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities">
+            <summary>
+            Provides Joystick capabilities.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.Axis_X">
+            <summary>Axis1 X.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.Axis_Y">
+            <summary>Axis1 Y.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.Axis_X2">
+            <summary>Axis2 X.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.Axis_Y2">
+            <summary>Axis2 Y.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.HatSwitch">
+            <summary>Hat switch.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCapabilities.Buttons">
+            <summary>Buttons.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickCursor">
+            <summary>
+            Provides the Joystick's cursor position.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCursor.X">
+            <summary>
+            The X position of the cursor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickCursor.Y">
+            <summary>
+            The Y position of the cursor.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch">
+            <summary>
+            Hat switch directions.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_Up">
+            <summary>Up.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_UpRight">
+            <summary>Up right.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_Right">
+            <summary>Right.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_DownRight">
+            <summary>Down right.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_Down">
+            <summary>Down.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_DownLeft">
+            <summary>Down left.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_Left">
+            <summary>Left.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_UpLeft">
+            <summary>Up left.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_JoystickHatSwitch.Direction_None">
+            <summary>Default position.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Joystick">
+            <summary>
+            Provides access functionalities for the connected Joystick.
+            </summary>
+            <remarks>
+            <strong style="color:blue">Position</strong><br/>
+            Each <c>USBH_Joystick</c> will hold the current position. By default, the reported range is between -512 and 512.<br/>
+            The current cursor position, can be obtained using <c>USBH_Joystick.Cursor</c> for the first axis. A second cursor is also available for a second axis if exists.<br/>
+            <br/>
+            <strong style="color:blue">Buttons</strong><br/>
+            Joysticks can have many buttons and they are mapped to index '0', to 'number to keys – 1'. The buttons are ordered in their significance. The most significant is button index 0. At any time, the user can check the status of a button using:<br/>
+            <c>Joystick.GetButtonState(0); // state of the first button<br/>
+            Joystick.GetButtonState(1); // state of the second button</c><br/>
+            <br/>
+            <strong style="color:blue">Hat Switch</strong><br/>
+            Hat switch is supported using <c>HatSwitch</c> member.<br/>
+            <br/>
+            <strong style="color:blue">Events</strong><br/>
+            Different events are available when a button is pressed or when a movement has occurred. The events associated with a button contain event arguments that hold the index of the button associated with the event.<br/>
+            <br/>
+            For this device, there is an internal thread that maintains the device events. The thread priority is set to the highest settings but the user is able to change this thread priority to optimize the program performance.
+            </remarks>
+            <example>
+            The following will read Joystick movement and buttons.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_Joystick j;
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Joystick)
+            {
+                Debug.Print("Joystick Connected");
+                j = new USBH_Joystick(device);
+                j.JoystickXYMove += JoystickXYMove;
+                j.JoystickButtonDown += JoystickButtonDown;
+            }
+        }
+
+        static void JoystickButtonDown(USBH_Joystick sender, USBH_JoystickEventArgs args)
+        {
+            Debug.Print("Button Pressed: " + args.ChangedButton);
+        }
+
+        static void JoystickXYMove(USBH_Joystick sender, USBH_JoystickEventArgs args)
+        {
+            Debug.Print("(x, y) = (" + sender.Cursor.X + ", " + sender.Cursor.Y + ")");
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Joystick.Capabilities">
+            <summary>
+            Joystick capabilities.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Joystick.GetButtonState(System.Int32)">
+            <summary>
+            Gets the current button state.
+            </summary>
+            <param name="buttonNumber">Button number.</param>
+            <returns>Button state.</returns>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Joystick.Cursor">
+            <summary>
+            Provides the position of the Joystick's first axis cursor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Joystick.Cursor2">
+            <summary>
+            Provides the position of the Joystick's second axis cursor.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Joystick.HatSwitch">
+            <summary>
+            Provides the direction of the Joystick's hat switch.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Joystick.SetCursorBounds(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Sets cursor bounds for first axis.
+            </summary>
+            <param name="minX">minX.</param>
+            <param name="maxX">maxX.</param>
+            <param name="minY">minY.</param>
+            <param name="maxY">maxY.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Joystick.SetCursor2Bounds(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Sets cursor bounds for second axis.
+            </summary>
+            <param name="minX">minX.</param>
+            <param name="maxX">maxX.</param>
+            <param name="minY">minY.</param>
+            <param name="maxY">maxY.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Joystick.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Joystick.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Creates a new Joystick.
+            </summary>
+            <param name="device">Joystick device.</param>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_Joystick.InternalThreadPriority">
+            <summary>
+            Internal thread priority.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.Disconnected">
+            <summary>
+            The event is called when the Joystick is disconnected.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.JoystickButtonDown">
+            <summary>
+            The event is called when a Joystick's button is pressed.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.JoystickButtonUp">
+            <summary>
+            The event is called when a Joystick's button is released.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.JoystickXYMove">
+            <summary>
+            The event is called when a Joystick's move on the first axis has been detected.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.JoystickXY2Move">
+            <summary>
+            The event is called when a Joystick's move on the second axis has been detected.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Joystick.HatSwitchPress">
+            <summary>
+            The event is called when a Joystick's hat switch press has been detected.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_RawDeviceEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_RawDeviceEventHandler">
+            <summary>
+            A handler for Raw Device callbacks.
+            </summary>
+            <param name="sender">The associated <c>USBH_RawDevice</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_RawDevice">
+            <summary>
+            Provides low level access functionalities for the connected USB device.
+            </summary>
+            <remarks>
+            Using this class, the user can access any device. This is useful if GHI does not already provide a driver for that device. The USB device can be manipulated easily.<br/>
+            <br/>
+            <strong style="color:red">Note that you should have an understanding of the USB specifications in order to use this functionality (www.usb.org).</strong><br/>
+            </remarks>
+            <example>
+            The following will read a USB mouse data.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+using GHIElectronics.NETMF.System;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_RawDevice mouse;
+        static USBH_RawDevice.Pipe mousePipe; // needed to read the mouse data
+        static Thread mouseThread; // polls the mouse for data
+
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Mouse)
+            {
+                Debug.Print("Mouse connected");
+                mouse = new USBH_RawDevice(device);
+
+                // Get descriptors
+                USBH_Descriptors.Configuration cd = mouse.GetConfigurationDescriptors(0);
+
+                // communication endpoint
+                USBH_Descriptors.Endpoint mouseEP = null;
+
+                // look for HID class
+                for (int i = 0; i < cd.interfaces.Length; i++)
+                {
+                    // found
+                    if (cd.interfaces[i].bInterfaceClass == 0x03)
+                    {
+                        // look for input interrupt Endpoint
+                        for (int ep = 0; ep < cd.interfaces[i].endpoints.Length; ep++)
+                        {
+                            // is it interrupt Endpoint?
+                            if (cd.interfaces[i].endpoints[ep].bmAttributes == 0x03)
+                            {
+                                // set configuration
+                                mouse.SendSetupTransfer(0x00, 0x09, cd.bConfigurationValue, 0x00);
+
+                                mouseEP = cd.interfaces[i].endpoints[ep];   // get endpoint
+                                mousePipe = mouse.OpenPipe(mouseEP);        // open pipe
+                                mousePipe.TransferTimeout = 0;              // recommended for interrupt transfers
+
+                                mouseThread = new Thread(MouseThread);      // create the polling thread
+                                mouseThread.Priority = ThreadPriority.Highest;  // we should read as fast as possible
+                                mouseThread.Start();
+
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        static void MouseThread()
+        {
+            int count;
+
+            // Maximum data is wMaxPacketSize
+            byte[] mouseData = new byte[mousePipe.PipeEndpoint.wMaxPacketSize];
+
+            // Read every bInterval
+            while (true)
+            {
+                Thread.Sleep(mousePipe.PipeEndpoint.bInterval);
+
+                count = mousePipe.TransferData(mouseData, 0, mouseData.Length);
+
+                // In most mice, the second data byte is change in X direction and the third byte is change in Y direction
+                if (count > 3)
+                {
+                    Debug.Print("(dx, dy) = (" + (sbyte)(mouseData[1]) + ", " + (sbyte)(mouseData[2]) + ")");
+                }
+            }
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.OpenPipe(GHIElectronics.NETMF.USBHost.USBH_Descriptors.Endpoint)">
+            <summary>
+            Opens a communication pipe.
+            </summary>
+            <param name="ep">Communication Endpoint.</param>
+            <returns>Created pipe.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Creates a new RawDevice.
+            </summary>
+            <param name="device">USB device.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.SendSetupTransfer(System.Byte,System.Byte,System.UInt16,System.UInt16,System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Sends USB Setup transfer.
+            </summary>
+            <param name="bmRequestType">bmRequestType.</param>
+            <param name="bRequest">bRequest.</param>
+            <param name="wValue">wValue.</param>
+            <param name="wIndex">wIndex.</param>
+            <param name="data">data.</param>
+            <param name="dataOffset">dataOffset.</param>
+            <param name="dataCount">dataCount.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.SendSetupTransfer(System.Byte,System.Byte,System.UInt16,System.UInt16)">
+            <summary>
+            Sends USB Setup transfer.
+            </summary>
+            <param name="bmRequestType">bmRequestType.</param>
+            <param name="bRequest">bRequest.</param>
+            <param name="wValue">wValue.</param>
+            <param name="wIndex">wIndex.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.GetConfigurationDescriptorsBytes(System.Byte)">
+            <summary>
+            Get configuration descriptors bytes.
+            </summary>
+            <param name="configurationIndex">Configuration index.</param>
+            <returns>Configuration descriptors bytes.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.GetDeviceDescriptor">
+            <summary>
+            Gets device descriptor.
+            </summary>
+            <returns>Device descriptor.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.GetConfigurationDescriptors(System.Byte)">
+            <summary>
+            Gets configuration descriptors.
+            </summary>
+            <param name="configurationIndex">Configuration index.</param>
+            <returns>Configuration descriptors.</returns>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Disconnected">
+            <summary>
+            The event is called when the USBH_RawDevice is disconnected.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Pipe">
+            <summary>
+            USB communication pipe.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Pipe.PipeEndpoint">
+            <summary>
+            Endpoint associated with this pipe.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Pipe.Finalize">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Pipe.TransferData(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Transfers data from/to endpoint.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+            <returns>Number of bytes successfully transferred.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_RawDevice.Pipe.TransferTimeout">
+            <summary>
+            Timeout for transfer operation.
+            </summary>
+            <remarks>
+            Default timeout is 500 ms.
+            </remarks>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Key">
+            <summary>
+            Lists the available keys from a Keyboard.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.None">
+            <summary>No Key is associated.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.A">
+            <summary>Key: A.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.B">
+            <summary>Key: B.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.C">
+            <summary>Key: C.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D">
+            <summary>Key: D.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.E">
+            <summary>Key: E.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F">
+            <summary>Key: F.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.G">
+            <summary>Key: G.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.H">
+            <summary>Key: H.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.I">
+            <summary>Key: I.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.J">
+            <summary>Key: J.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.K">
+            <summary>Key: K.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.L">
+            <summary>Key: L.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.M">
+            <summary>Key: M.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.N">
+            <summary>Key: N.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.O">
+            <summary>Key: O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.P">
+            <summary>Key: P.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Q">
+            <summary>Key: Q.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.R">
+            <summary>Key: R.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.S">
+            <summary>Key: S.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.T">
+            <summary>Key: T.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.U">
+            <summary>Key: U.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.V">
+            <summary>Key: V.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.W">
+            <summary>Key: W.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.X">
+            <summary>Key: X.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Y">
+            <summary>Key: Y.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Z">
+            <summary>Key: Z.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D1">
+            <summary>Key: 1 or !.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D2">
+            <summary>Key: 2 or @.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D3">
+            <summary>Key: 3 or #.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D4">
+            <summary>Key: 4 or $.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D5">
+            <summary>Key: 5 or %.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D6">
+            <summary>Key: 6 or ^.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D7">
+            <summary>Key: 7 or &amp;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D8">
+            <summary>Key: 8 or *.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D9">
+            <summary>Key: 9 or (.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.D0">
+            <summary>Key: 0 or ).</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Enter">
+            <summary>Key: Enter.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Escape">
+            <summary>Key: Esc.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.BackSpace">
+            <summary>Key: Backspace.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Tab">
+            <summary>Key: Tab.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Space">
+            <summary>Key: Space.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Substract">
+            <summary>Key: - or _.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Equal">
+            <summary>Key: = or +.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.OpenBrackets">
+            <summary>Key: [ or {.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.CloseBrackets">
+            <summary>Key: ] or }.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Backslash">
+            <summary>Key: \ or |.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.NON_US">
+            <summary>Key: Not supported. Non-US keyboard character.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Semicolon">
+            <summary>Key: ; or :.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Quotes">
+            <summary>Key: ' or ".</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.GraveAccent">
+            <summary>Key: ` or ~.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Comma">
+            <summary>Key: , or &lt;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Period">
+            <summary>Key: . or &gt;.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Divide">
+            <summary>Key: / or ?.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.CapsLock">
+            <summary>Key: Caps Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F1">
+            <summary>Key: F1.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F2">
+            <summary>Key: F2.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F3">
+            <summary>Key: F3.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F4">
+            <summary>Key: F4.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F5">
+            <summary>Key: F5.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F6">
+            <summary>Key: F6.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F7">
+            <summary>Key: F7.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F8">
+            <summary>Key: F8.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F9">
+            <summary>Key: F9.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F10">
+            <summary>Key: F10.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F11">
+            <summary>Key: F11.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.F12">
+            <summary>Key: F12.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.PrintScreen">
+            <summary>Key: Print Screen.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.ScrollLock">
+            <summary>Key: Scroll Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Pause">
+            <summary>Key: Pause.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Insert">
+            <summary>Key: Insert.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Home">
+            <summary>Key: Home.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.PageUp">
+            <summary>Key: Page Up.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Delete">
+            <summary>Key: Delete.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.End">
+            <summary>Key: End.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.PageDown">
+            <summary>Key: Page Down.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.RightArrow">
+            <summary>Key: Right Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.LeftArrow">
+            <summary>Key: Left Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.DownArrow">
+            <summary>Key: Down Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.UpArrow">
+            <summary>Key: Up Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.NumLock">
+            <summary>Key: Num Lock.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Divide">
+            <summary>Key: Keypad /.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Multiply">
+            <summary>Key: Keypad *.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Substract">
+            <summary>Key: Keypad -.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Add">
+            <summary>Key: Keypad +.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Enter">
+            <summary>Key: Keypad Enter.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D1">
+            <summary>Key: Keypad 1 or End.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D2">
+            <summary>Key: Keypad 2 or Down Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D3">
+            <summary>Key: Keypad 3 or Page Down.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D4">
+            <summary>Key: Keypad 4 or Left Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D5">
+            <summary>Key: Keypad 5.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D6">
+            <summary>Key: Keypad 6 or Right Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D7">
+            <summary>Key: Keypad 7 or Home.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D8">
+            <summary>Key: Keypad 8 or Up Arrow.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D9">
+            <summary>Key: Keypad 9 or Page Up.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_D0">
+            <summary>Key: Keypad 0 or Insert.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Keypad_Delete">
+            <summary>Key: Keypad . or Delete.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.NON_US_2">
+            <summary>Key: Not supported. Non-US keyboard character.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.Application">
+            <summary>Key: Application.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.LeftCtrl">
+            <summary>Key: Left Ctrl.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.LeftShift">
+            <summary>Key: Left Shift.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.LeftAlt">
+            <summary>Key: Left Alt.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.LeftGUI">
+            <summary>Key: Left GUI.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.RightCtrl">
+            <summary>Key: Right Ctrl.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.RightShift">
+            <summary>Key: Right Shift.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.RightAlt">
+            <summary>Key: Right Alt.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_Key.RightGUI">
+            <summary>Key: Right GUI.</summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_KeyState">
+            <summary>
+            Lists the Key states.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_KeyState.Down">
+            <summary>
+            The Key is pressed.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_KeyState.Up">
+            <summary>
+            The Key is Up.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_KeyboardEventArgs">
+            <summary>
+            Event arguments.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_KeyboardEventArgs.Key">
+            <summary>
+            The Key associated with the event.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.USBHost.USBH_KeyboardEventArgs.KeyAscii">
+            <summary>
+            The ASCII representation of the key, if available. Otherwise, this value is <b>0</b>.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_KeyboardEventHandler">
+            <summary>
+            A handler for Keyboard callbacks.
+            </summary>
+            <param name="sender">The associated <c>USBH_Keyboard</c> with this event.</param>
+            <param name="args">Event arguments.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.USBHost.USBH_Keyboard">
+            <summary>
+            Provides access functionalities for the connected Keyboard.
+            </summary>
+            <remarks>
+            <strong style="color:blue">Events</strong><br/>
+            There are events sent for every Key press. Also, there are events for "char" presses when the Key can be converted to its ASCII representation.<br/>
+            <br/>
+            Also, at any time the user can query the Key status using <c>GetKeyState()</c>.<br/>
+            <br/>
+            For this device, there is an internal thread that maintains the device events. The thread priority is set to the highest settings but the user is able to change this thread priority to optimize the program performance.
+            </remarks>
+            <example>
+            Reading characters from a keyboard.
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+
+using Microsoft.SPOT;
+
+using GHIElectronics.NETMF.USBHost;
+
+namespace Test
+{
+    public class Program
+    {
+        static USBH_Keyboard kb;
+        public static void Main()
+        {
+            // Subscribe to USBH event.
+            USBHostController.DeviceConnectedEvent += DeviceConnectedEvent;
+
+            // Sleep forever
+            Thread.Sleep(Timeout.Infinite);
+        }
+
+        static void DeviceConnectedEvent(USBH_Device device)
+        {
+            if (device.TYPE == USBH_DeviceType.Keyboard)
+            {
+                Debug.Print("Keyboard Connected");
+                kb = new USBH_Keyboard(device);
+                kb.CharDown += CharDown;
+            }
+        }
+
+        static void CharDown(USBH_Keyboard sender, USBH_KeyboardEventArgs args)
+        {
+            // Display the pressed key
+            Debug.Print(args.KeyAscii.ToString());
+        }
+    }
+}
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Keyboard.Finalize">
+            <exclude />
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Keyboard.#ctor(GHIElectronics.NETMF.USBHost.USBH_Device)">
+            <summary>
+            Creates a new keyboard.
+            </summary>
+            <param name="device">Keyboard device.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.USBHost.USBH_Keyboard.GetKeyState(GHIElectronics.NETMF.USBHost.USBH_Key)">
+            <summary>
+            Gets the current key state.
+            </summary>
+            <param name="key">The needed ley.</param>
+            <returns>Key state.</returns>
+        </member>
+        <member name="P:GHIElectronics.NETMF.USBHost.USBH_Keyboard.InternalThreadPriority">
+            <summary>
+            Internal thread priority.
+            </summary>
+            <remarks>
+            For this device, there is an internal thread that maintains the device events. The thread priority is set to the highest settings but the user is able to change this thread priority to optimize the program performance.
+            </remarks>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Keyboard.Disconnected">
+            <summary>
+            The event is called when the Keyboard is disconnected.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Keyboard.KeyUp">
+            <summary>
+            The event is called when a Keyboard Key is released.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Keyboard.KeyDown">
+            <summary>
+            The event is called when a Keyboard Key is pressed.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Keyboard.CharUp">
+            <summary>
+            The event is called when a Keyboard Key is released and it can be converted to ASCII.
+            </summary>
+        </member>
+        <member name="E:GHIElectronics.NETMF.USBHost.USBH_Keyboard.CharDown">
+            <summary>
+            The event is called when a Keyboard Key is pressed and it can be converted to ASCII.
+            </summary>
+        </member>
+    </members>
+</doc>

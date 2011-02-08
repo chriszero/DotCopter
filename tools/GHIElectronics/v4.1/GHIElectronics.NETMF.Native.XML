@@ -1,0 +1,759 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Native</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Native.RLP">
+            <summary>
+            Runtime Loadable Procedures.
+            </summary>
+            <remarks>
+            RLP allows developers to load/execute their own compiled C/Assembly procedures at runtime. RLP supports loading ELF executables and, for advanced users, you can load binary images using <c>GHIElectronics.NETMF.Hardware.LowLevel.AddressSpace</c> class. If needed, the user can load multiple images in the reserved RLP memory region.<br/>
+            Compiled C/Assembly procedures are executed natively and can perform much faster than managed application, up to 10000 times faster! This is very useful for calculation intensive applications.<br/>
+            Also, RLP has extensions that can be used directly from Native code. You can use dynamic memory, install interrupts and much more.<br/>
+            <br/>
+            Steps to execute RLP:
+            <ul>
+            <li>Create a C or Assembly program. Make sure the program uses the available address space for the RLP. This is set by the linker, using linker scripts.</li>
+            <li>Make sure that the exposed C procedures (called from C#) are in the required form.</li>
+            <li>Debug the program as needed.</li>
+            <li>Include the program binary image or ELF file (recommended) in the managed application. For example, it can be a Resource, a file on SD card, obtained over a network...etc.</li>
+            <li>In managed application, load the native program into the reserved region.</li>
+            <li>You can now invoke (access) the needed native functions from the managed application.</li>
+            </ul>
+            <br/>
+            <strong style="color:blue">Platform support and RLP Memory Mapping</strong><br/>
+            The user must make sure that native programs use only the assigned memory for program code and for variables. The following platforms support RLP:<br/>
+            <br/>
+            <strong>ChipworkX:</strong> RLP Address: 0xA0000000 Size: 0x001FB3FC<br/>
+            For advanced users, this region is a cached mapping of non-cached SDRAM region starting at 0x23E00000.<br/>
+            <br/>
+            <strong>EMX:</strong> RLP Address: 0xA0F00000 Size: 0x000FFFFC<br/>
+            Note that RLP is locked by default in EMX. Please see EMX User Manual for details.<br/>
+            <br/>
+            <strong style="color:blue">Loading Native Image</strong><br/>
+            Using ELF executables is easier than using raw binary images because it has information about the load regions and the available functions.<br/>
+            For example:
+            <code>
+            RLP.LoadELF(elfImage); // Load file
+            RLP.Procedure Foo = RLP.GetProcedure(elfImage, "Foo"); // Get some procedure
+            Foo.Invoke(...); // Access native code
+            </code>
+            Note that global variables are not initialized to zero automatically. To do this, you need to provide the BSS region name to <c>InitializeBSSRegion</c>.<br/>
+            If you are using the examples and linker script provided with the SDK, you just have to do the following:<br/>
+            <code>
+            RLP.LoadELF(elfImage); // Load file
+            RLP.InitializeBSSRegion();
+            ...
+            </code>
+            More advanced, you can load a binary image directly.<br/>
+            For example:
+            <code>
+            AddressSpace.Write(loadAddress, binaryImage, 0, binaryImage.Length); // Load binary image
+            RLP.Procedure Foo = new RLP.Procedure(procedureAddress); // Create a procedure with a known address
+            Foo.Invoke(...); // Access native code
+            </code>
+            <strong style="color:blue">Calling Procedures from Managed Code (C#)</strong><br/>
+            After loading the image as mentioned above, you call the native code directly and pass arguments. You need to get the <c>Procedure</c> (as above) and then you call <c>Procedure.Invoke(...)</c>.<br/>
+            You can invoke precedues in many ways:<br/>
+            <c>Invoke()</c> can be called with no arguments.<br/>
+            <c>Invoke(params object[] argList)</c> can be called with a variable argument list. You can send up to 8 variable arguments, <c>RLP.MAX_ARGS</c>.<br/>
+            Examples:
+            <code>
+            byte[] byteArray = new byte[10];
+            Foo1.Invoke(); // No arguments are sent
+            Foo2.Invoke(5); // send the number 5
+            Foo3.Invoke("Some String"); // Send a string
+            Foo4.Invoke(5, byteArray, "Some String", 53.14f); // send several arguments, including a float variable
+            </code>
+            The following are supported for the variable argument list:<br/>
+            <table border="1">
+            <tr><th>C# Type</th><th>Corresponding C Type</th></tr>
+            <tr><td><c>byte[]</c></td><td><c>unsigned char[]</c></td></tr>
+            <tr><td><c>string</c></td><td><c>char[]</c> null-terminated</td></tr>
+            <tr><td><c>byte</c></td><td><c>unsigned char</c></td></tr>
+            <tr><td><c>sbyte</c></td><td><c>char</c></td></tr>
+            <tr><td><c>char</c></td><td><c>char</c></td></tr>
+            <tr><td><c>short</c></td><td><c>short</c></td></tr>
+            <tr><td><c>ushort</c></td><td><c>unsigned short</c></td></tr>
+            <tr><td><c>int</c></td><td><c>int</c></td></tr>
+            <tr><td><c>uint</c></td><td><c>unsigned int</c></td></tr>
+            <tr><td><c>bool</c></td><td><c>unsigned char</c></td></tr>
+            <tr><td><c>float</c></td><td><c>float</c></td></tr>
+            </table>
+            <strong>Important note:</strong> Variable arguments (including strings) are copied before they are passed to native procedures. Which means, changes on the data on the native side will not affect the data in the managed application. This does not apply to C# <c>byte[]</c> arrays, where changes in native code will change the variables on managed side. This behavior is similar to passing arguments in C programming.<br/>
+            <br/>
+            <c>InvokeEx(generalArgument, params object[] argList)</c> has the following:<br/>
+            <strong>argList</strong> is the same as above and has the same rules. This is optional. It is a variable argument list and has some overhead when invoking the Native code. The least overhead is achieved when sending byte[] from C#, as opposed to sending a string or int.<br/>
+            <strong>generalArgument</strong> has several overloads. It is an array of choice. This array is passed as a pointer, changing numbers in native code will affect numbers in managed code. Also, this argument has minimum overhead on invoking Native C from C# application.<br/>
+            The array can be <c>byte []</c>, <c>int []</c>, <c>float []</c> ...etc<br/>
+            <br/>
+            Examples continued:
+            <code>
+            byte[] byteArray = new byte[10];
+            byte[] byteArray2 = new byte[10];
+            int[] intArray = new int[10];
+            float[] floatArray = new float[10];
+            Foo5.InvokeEx(byteArray); // uses the general array // no variable arguments
+            Foo6.InvokeEx(floatArray, "Some String");     // uses a general array   // one variable argument
+            Foo7.InvokeEx(intArray, byteArray);     // uses a generalArray (intArray) // one variable argument a byte[]
+            Foo8.InvokeEx(byteArray, byteArray2);     // uses a generalArray (byteArray)  // one variable argument (byteArray2)
+            </code>
+            <strong style="color:blue">Native Procedures Implementation (C Language)</strong><br/>
+            The managed side is flexible and the number/types of arguments is not the same. However, all of them is mapped to a <strong>single</strong> type of function in the native code.<br/>
+            The native procedures (C/Assembly) that will be invoked from managed code (C#) <strong>must</strong> be as follows:<br/>
+            <c>int FunctionName(Type *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)</c><br/>
+            <strong>generalArray</strong> is the same as managed C# array. Changing values in the native side will also change them in managed app.<br/>
+            The <c>Type</c> should be replaced appropriately. For example:<br/>
+            C# is passing <c>byte[]</c> array. The corresponding C declaration is: <c>Type *generalArray</c> replaced by <c>unsigned char *generalArray</c>.<br/>
+            C# is passing <c>float[]</c> array. The corresponding C declaration is: <c>Type *generalArray</c> replaced by <c>float *generalArray</c>.<br/>
+            and so on...<br/>
+            You can also replace it on native side with <c>void *generalArray</c>. This will work in all situations, but you have to cast the <c>void</c> pointer when used.<br/>
+            <strong>args</strong> are all the variable list arguments passed as pointers array, see example next.<br/>
+            <strong>argsCount</strong> is variable arguments count. Zero means no arguments except for generalArray<br/>
+            <strong>argSize</strong> contains the size of each one of the variable arguments in bytes. For example, passing an <c>int</c> will result in 4 bytes and passing an array of 10 bytes will result in 10.<br/>
+            <br/>
+            When some of these arguments are not used, for example the generalArray or the variable argument list, they are not necessarily <c>NULL</c> and should not be accessed.<br/>
+            <br/>
+            The following example refers to the same Foo1, Foo2, Foo3... functions above but on the native side:
+            <code language="C++">
+<![CDATA[
+// C#: Foo1.Invoke(); // No arguments are sent
+int Foo1(unsigned int *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// argsCount == 0
+	// No arguments are passed
+
+	return 0;	// Some return value
+}
+
+// C#: Foo2.Invoke(5); // send the number 5
+int Foo2(unsigned int *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// passed one argument, an int.
+	// argsCount == 1
+	// argSize[0] == 4
+	int number = *(int*)args[0];
+	// number == 5
+
+	return 0;	// Some return value
+}
+
+// C#: Foo3.Invoke("Some String"); // Send a string
+int Foo3(unsigned int *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// passed one argument, a string.
+	// argsCount == 1
+	// argSize[0] == 12 (includes the null at the end)
+	char *string = (char*)args[0];
+	// string == "Some String"
+
+	return 0;	// Some return value
+}
+
+// C#: Foo4.Invoke(5, byteArray, "Some String", 53.14f); // send several arguments, including a float variable
+int Foo4(unsigned int *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// passed four arguments.
+	// argsCount == 4
+	// argSize[0] == 4
+	// argSize[1] == 10
+	// argSize[2] == 12
+	// argSize[3] == 4
+	int number = *(int*)args[0];		// number == 5
+	unsigned char *byteArray = (unsigned char*)args[1];	// same byteArray in C#
+	char *string = (char*)args[2]; 			// string == "Some String"
+	float fNumber = *(float*)args[3];		// fNumber == 53.14f
+
+	return 0;	// Some return value
+}
+
+// C#: Foo5.InvokeEx(byteArray); // uses the general array // no variable arguments
+int Foo5(unsigned char *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// argsCount == 0
+	// generalArray is the same as byteArray in C#
+
+	return 0;	// Some return value
+}
+
+// C#: Foo6.InvokeEx(floatArray, "Hello");     // uses a general array   // one variable argument
+int Foo6(float *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// argsCount == 1
+	// argSize[0] == 12 (includes the null at the end)
+	char *string = (char*)args[0]; // string == "Some String"
+	// generalArray is the same as floatArray in C#
+
+	return 0;	// Some return value
+}
+
+// C#: Foo7.InvokeEx(intArray, byteArray);     // uses a generalArray (intArray) // one variable argument a byte[]
+int Foo7(int *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// argsCount == 1
+	// argSize[0] == 10
+	unsigned char *byteArray = (unsigned char*)args[0];	// same byteArray in C#
+	// generalArray is the same as intArray in C#
+
+	return 0;	// Some return value
+}
+
+// C#: Foo8.InvokeEx(byteArray, byteArray2);     // uses a generalArray (byteArray)  // one variable argument (byteArray2)
+int Foo8(unsigned char *generalArray, void **args, unsigned int argsCount, unsigned int *argSize)
+{
+	// argsCount == 1
+	// argSize[0] == 10
+	unsigned char *byteArray2 = (unsigned char*)args[0];	// same byteArray2 in C#
+	// generalArray is the same as byteArray in C#
+
+	return 0;	// Some return value
+}
+]]>
+</code>
+            <br/>
+            <strong style="color:blue">Native Procedures Important Notes</strong>
+            <ul>
+            <li>Native function calls suspend all other C# threads and return only when the native procedure finishes.</li>
+            <li>Interrupts are always active unless it is explicitly stopped.</li>
+            <li>You cannot pin arrays. When you receive pointers from managed code and use them in C/Assembly code, do not store them. After the native procedure returns, these pointers are invalid. When the garbage collector start working, it might change the arrays/pointers locations. The following is invalid and might crash the system:
+            <code>
+            byte[] array = new byte [100];
+            Initialize.Invoke(array);       // This calls a native procedure that stores the pointer array.
+            ProcessArray.Invoke();          // This calls a native procedure that processes array data. 
+            </code>
+            In the example above, after the first native call, the pointer is no longer valid and cannot be used for the second procedure call.<br/>
+            The solution is to be careful in these situations. Also, native code has about 2 Megabytes space, so you can create a big array natively to hold your data. You can also use <c>RLPext</c> (see next section) to <c>malloc</c> dynamic memory.
+            </li>
+            </ul>
+            <strong style="color:blue">Native RLP Extensions</strong><br/>
+            RLP provides you with native code ability. The extensions provide external functionalities and procedures that you can be called your native code. For example, installing an interrupt service routine, allocating memory ...etc<br/>
+            All these are available from <strong>RLP.h</strong> which is included in the <strong>Examples</strong> section.<br/>
+            Note that the correct RLP region address and size must be updated in the header file before using (RLP_ADDRESS, RLP_SIZE). See Memory mapping section above.<br/>
+            Extensions are accessed through <c>RLPext</c> structure. Here is an example:<br/>
+            <code language="C++">
+            <![CDATA[
+            #include <RLP.h>
+            
+            #define USED_FIRMWARE_VERSION 0x0102003
+            void MyFunction(void)
+            {
+                ...
+                
+                // This is not necessary but an extra caution check
+                if(RLPext->magic != RLP_EXT_MAGIC)
+                    MyError();   // Some user function
+                    
+                // This is not necessary but an extra caution check. See if the firmware is correct...
+                if(RLPext->firmwareVersion != USED_FIRMWARE_VERSION)
+                    MyError();    // Some user function  
+                    
+                // Actual call, lets allocate memory and free it
+                char *buffer = (char*)RLPext->malloc(500);
+                RLPext->free(buffer);
+                
+                ...
+            }
+            ]]>
+            </code>
+            <strong><c>RLP.h</c> Definitions</strong>
+            <table border="1">
+            <tr><th>Definition</th><th>Description</th></tr>
+            
+            <tr>
+            <td><c>RLP_TRUE</c></td>
+            <td>True boolean value.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_FALSE</c></td>
+            <td>False boolean value.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_NONE</c></td>
+            <td>No GPIO is used.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_CWX_PORTA(x)</c></td>
+            <td>For ChipworkX, GPIO number on Port A. For example, pin PA10 is RLP_GPIO_PORTA(10).</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_CWX_PORTB(x)</c></td>
+            <td>For ChipworkX, GPIO number on Port B. For example, pin PB10 is RLP_GPIO_PORTB(10).</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_CWX_PORTC(x)</c></td>
+            <td>For ChipworkX, GPIO number on Port C. For example, pin PC10 is RLP_GPIO_PORTC(10).</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_INT_NONE</c></td>
+            <td>Interrupt type is none.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_INT_EDGE_LOW</c></td>
+            <td>Interrupt type is on low edge.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_INT_EDGE_HIGH</c></td>
+            <td>Interrupt type is on high edge.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_INT_EDGE_BOTH</c></td>
+            <td>Interrupt type is on both edges.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_RESISTOR_DISABLED</c></td>
+            <td>GPIO resistor state is disabled.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_RESISTOR_PULLDOWN</c></td>
+            <td>GPIO resistor state is pulled down.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_RESISTOR_PULLUP</c></td>
+            <td>GPIO resistor state is pulled up.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_CALLBACK_FPN</c></td>
+            <td>Callback function type. User function should be as follows: <c>void UserFunction(void* arg);</c><br/><c>arg:</c> is an optional user argument.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_GPIO_INTERRUPT_SERVICE_ROUTINE</c></td>
+            <td>GPIO callback function type. User function should be as follows: <c>void UserFunction(unsigned int Pin, unsigned int PinState, void* Param);</c><br/><c>Pin: </c>GPIO pin number.<br/><c>PinState: </c>True or false.<br/><c>Param: </c> Optional user argument.</td>
+            </tr>
+            
+            <tr>
+            <td><c>RLP_InterruptInputPinArgs</c></td>
+            <td>
+            Pin arguments structure.<br/>
+            <c>RLP_InterruptInputPinArgs.GlitchFilterEnable: </c>True to enable the glitch filter.<br/>
+            <c>RLP_InterruptInputPinArgs.IntEdge: </c> Needed interrupt edge state.<br/>
+            <c>RLP_InterruptInputPinArgs.ResistorState: </c> Needed resistor state.
+            </td>
+            </tr>
+            
+            </table>
+            
+            <strong>RLPext Structure</strong>
+            <table border="1">
+            <tr><th>RLPext Member</th><th>Declaration</th><th>Description</th></tr>
+            
+            <tr>
+            <td><c>magic</c></td>
+            <td><c>unsigned int magic</c></td>
+            <td>This is fixed to RLP_EXT_MAGIC. It can be used for checking purposes.</td>
+            </tr>
+            
+            <tr>
+            <td><c>firmwareVersion</c></td>
+            <td><c>unsigned int firmwareVersion</c></td>
+            <td>Used platform's firmware version in BCD. For example if the Firmware Version is 0x0102003 then Major Version is 01, Minor Version is 02 and Build Version is 003.</td>
+            </tr>
+            
+            <tr>
+            <td><c>magicSize</c></td>
+            <td><c>unsigned int magicSize</c></td>
+            <td>It can be used for checking purposes. This is the size of <c>RLPext</c> in GHI firmware.</td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.Install</c></td>
+            <td><c>unsigned int Install(unsigned int Irq_Index, RLP_CALLBACK_FPN ISR, void* ISR_Param)</c></td>
+            <td>Installs an ISR.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>RLP_CALLBACK_FPN:</c> Your ISR must use the same type. See Definitions section.<br/>
+            <c>ISR_Param:</c> Optional user argument. This is passed to the user's ISR when an interrupt happens. You can use NULL.<br/>
+            <c>Return: </c> True or false for success state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.Uninstall</c></td>
+            <td><c>unsigned int Uninstall(unsigned int Irq_Index)</c></td>
+            <td>Uninstalls an ISR.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>Return: </c> True or false for success state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.Disable</c></td>
+            <td><c>unsigned int Disable(unsigned int Irq_Index)</c></td>
+            <td>Disables an ISR.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>Return: </c> True or false for success state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.Enable</c></td>
+            <td><c>unsigned int Enable(unsigned int Irq_Index)</c></td>
+            <td>Enables an ISR.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>Return: </c> True or false for success state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.IsEnabled</c></td>
+            <td><c>unsigned int IsEnabled(unsigned int Irq_Index)</c></td>
+            <td>Checks if ISR is enabled.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>Return: </c> True or false for enable state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.IsPending</c></td>
+            <td><c>unsigned int IsPending(unsigned int Irq_Index)</c></td>
+            <td>Checks if ISR is pending.<br/>
+            <c>Irq_Index:</c> (Peripheral ID). Refer to processor datasheet for details.<br/>
+            <c>Return: </c> True or false for pending state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.GlobalInterruptDisable</c></td>
+            <td><c>unsigned int GlobalInterruptDisable()</c></td>
+            <td>Disables interrupts.<br/>
+            <c>Return: </c> True or false for the previous interrupt state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.GlobalInterruptEnable</c></td>
+            <td><c>unsigned int GlobalInterruptEnable()</c></td>
+            <td>Enables interrupts.<br/>
+            <c>Return: </c> True or false for the previous interrupt state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Interrupt.IsGlobalInterruptEnabled</c></td>
+            <td><c>unsigned int IsGlobalInterruptEnabled()</c></td>
+            <td>Checks the interrupt state.<br/>
+            <c>Return: </c> True or false for the interrupt state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.EnableOutputMode</c></td>
+            <td><c>void EnableOutputMode(unsigned int Pin, unsigned int InitialState)</c></td>
+            <td>Enables output pin.<br/>
+            <c>Pin: </c>GPIO number.<br/>
+            <c>InitialState: </c>True or false for initial state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.EnableInputMode</c></td>
+            <td><c>unsigned int EnableInputMode(unsigned int Pin, unsigned int ResistorState)</c></td>
+            <td>Enables input pin.<br/>
+            <c>Pin: </c>GPIO number.<br/>
+            <c>ResistorState: </c>See Definitions section.<br/>
+            <c>Return: </c> True or false for sucess state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.EnableInterruptInputMode</c></td>
+            <td><c>unsigned int EnableInterruptInputMode(unsigned int Pin, RLP_InterruptInputPinArgs *args, RLP_GPIO_INTERRUPT_SERVICE_ROUTINE ISR, void* ISR_Param)</c></td>
+            <td>Enables interrupt pin.<br/>
+            <c>Pin: </c>GPIO number.<br/>
+            <c>args: </c>GPIO args, see Definitions section.<br/>
+            <c>ISR: </c>Your ISR must use the same type. See Definitions section.<br/>
+            <c>ISR_Param: </c>Optional user argument. This is passed back to the user when an interrupt happens.<br/>
+            <c>Return: </c> True or false for sucess state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.ReadPin</c></td>
+            <td><c>unsigned int ReadPin(unsigned int Pin)</c></td>
+            <td>Reads pin state.<br/>
+            <c>Pin: </c>GPIO pin number.<br/>
+            <c>Return: </c> True or false for pin state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.WritePin</c></td>
+            <td><c>void WritePin(unsigned int Pin, unsigned int PinState)</c></td>
+            <td>Writes pin state.<br/>
+            <c>Pin: </c>GPIO pin number.<br/>
+            <c>PinState: </c>True or false for pin state.<br/>
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.ReservePin</c></td>
+            <td><c>unsigned int ReservePin(unsigned int Pin, unsigned int reserve)</c></td>
+            <td>Reserves the pin. When a pin is reserved, accessing the pin from C# application will cause an exception.<br/>
+            <c>Pin: </c>GPIO pin number.<br/>
+            <c>reserve: </c>True or false for reserve state.<br/>
+            <c>Return: </c>True or false for success state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>GPIO.IsReserved</c></td>
+            <td><c>unsigned int IsReserved(unsigned int Pin)</c></td>
+            <td>Checks if the pin is reserved. When a pin is reserved, accessing the pin from C# application will cause an exception.<br/>
+            <c>Pin: </c>GPIO pin number.<br/>
+            <c>Return: </c>True or false for reserve state.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>malloc</c></td>
+            <td><c>void* malloc(unsigned int len)</c></td>
+            <td>Allocates dynamic memory. NOTE that this memory is shared with Micro Framework. Make sure to <c>free</c> the buffers when done. The location of the allocated memory does not change during the life of the application.<br/>
+            <c>len: </c>Memory allocation length.<br/>
+            <c>Return: </c>Memory location.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>free</c></td>
+            <td><c>void free(void *ptr)</c></td>
+            <td>Frees previously allocated memory.<br/>
+            <c>ptr: </c>Memory location.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>malloc_CustomHeap</c></td>
+            <td><c>void* malloc_CustomHeap(unsigned int len)</c></td>
+            <td>Allocates dynamic memory on the custom heap in NETMF..<br/>
+            <c>len: </c>Memory allocation length.<br/>
+            <c>Return: </c>Memory location.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>free_CustomHeap</c></td>
+            <td><c>void _CustomHeap(void *ptr)</c></td>
+            <td>Frees previously allocated memory in custom heap.<br/>
+            <c>ptr: </c>Memory location.
+            </td>
+            </tr>
+            
+            <tr>
+            <td><c>Delay</c></td>
+            <td><c>void Delay(unsigned int microSeconds)</c></td>
+            <td>Provides a delay.<br/>
+            <c>microSeconds: </c>Delay in Micro-seconds.
+            </td>
+            </tr>
+            
+            </table>
+            </remarks>
+            <example>
+            For examples and RLP extensions, they are available <a href="../RLP_User.zip">here</a>. 
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.GetAccessCode(System.UInt32,System.Byte[])">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Unlock(System.UInt32,System.Byte[])">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.LoadELF(System.Byte[])">
+            <summary>
+            Loads ELF file image.
+            </summary>
+            <param name="elf">ELF image.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.InitializeBSSRegion(System.Byte[],System.String,System.String)">
+            <summary>
+            This Method it search for starting address and ending address of BSS region and resets it with zero values.
+            
+            <remarks>
+            User is supposed to execute this method before start using RLP procedures, to avoid any unexpected results due to uninitialized variables.
+            </remarks>
+            </summary>
+            <param name="elf">ELF file</param>
+            <param name="start_address_name"> BSS region starting address, it is "__bss_start__" in the example linker script provided by RLP examples.</param>
+            <param name="end_address_name">BSS region ending address, it is "__bss_end__" in the example linker script provided by RLP examples.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.InitializeBSSRegion(System.Byte[])">
+            <summary>
+            This Method it search for starting address "__bss_start__" and ending address "__bss_end__" of BSS region and resets it with zero values.
+            </summary>
+            <remarks>
+            User is supposed to execute this method before start using RLP procedures, to avoid any unexpected results due to uninitialized variables.
+            This method works only if the linker script file is similar to the one provided with GHI RLP examples.<br/> Otherwise,void InitializeBSSRegion(byte[] elf,string start_address_name, string end_address_name) should be used instead.
+            </remarks>
+            <param name="elf">ELF image.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.LoadELF(System.Byte[],System.UInt32@,System.UInt32@,System.UInt32@)">
+            <summary>
+            Loads ELF file image.
+            </summary>
+            <param name="elf">ELF image.</param>
+            <param name="lastloadedImageAddress">Last loaded image address, may be useful for debugging.</param>
+            <param name="lastloadedImageSize">Last loaded image size, may be useful for debugging.</param>
+            <param name="loadedregionscount">Loaded image size, may be useful for debugging.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.InitializeZeroRegion(System.UInt32,System.UInt32)">
+            <summary>
+            Initialize memory region with zeros.
+            </summary>
+            <remarks>
+            This Method is usually used to initialize BSS region and that to initialize global and static variables to zero.
+            Global or static variable with initial value other than zero do not need to be initialized.
+            </remarks>
+            <param name="startAddress"> Region start address.</param>
+            <param name="regionSize"> Region size</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.FindSymbol(System.Byte[],System.String,GHIElectronics.NETMF.Native.RLP.SymbolType)">
+            <summary>
+            This Method looks up in Symbol table for specific symbol with string name and type
+            </summary>
+            <param name="elf">ELF file</param>
+            <param name="symbolName"> Symbol name</param>
+            <param name="type">Symbol Type</param>
+            <returns> Returns symbol's address in memory</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.GetProcedure(System.Byte[],System.String)">
+            <summary>
+            Gets a procedure from a given ELF file using the procedure name.
+            </summary>
+            <param name="elf">ELF file.</param>
+            <param name="procedureName">Procedure name.</param>
+            <returns>A new <c>Procedure</c>.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Native.RLP.Procedure">
+            <summary>
+            Native Procedure.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Native.RLP.Procedure.MAX_ARGS">
+            <summary>
+            Maximum number of variable arguments.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.#ctor(System.UInt32)">
+            <summary>
+            Creates a native procedure from a given address.
+            </summary>
+            <param name="address">Procedure address.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.UInt32[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.Invoke">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.Invoke(System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.Int32[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.Byte[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.SByte[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.Char[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.Int16[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.UInt16[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.Native.RLP.Procedure.InvokeEx(System.Single[],System.Object[])">
+            <summary>
+            Calls a native procedure.
+            </summary>
+            <param name="generalArray">General purpose array.</param>
+            <param name="argList">Variable argument list.</param>
+            <returns>Return value.</returns>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Native.RLP.SymbolType">
+            <summary>
+            Symbol Type. Refer to ELF documentation for more details
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Native.RLP.SymbolType.NOTYPE">
+            <summary>
+            No Type, like BSS start address symbol.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Native.RLP.SymbolType.OBJECT">
+            <summary>
+            Object.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Native.RLP.SymbolType.FUNC">
+            <summary>
+            Function or Procedure
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Native.RLP.SymbolType.SECTION">
+            <summary>
+            Section
+            </summary>
+        </member>
+    </members>
+</doc>

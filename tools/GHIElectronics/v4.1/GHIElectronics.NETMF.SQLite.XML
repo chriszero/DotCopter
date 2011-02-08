@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.SQLite</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.SQLite.SQLiteException">
+            <summary>
+            SQLite Exception class
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.SQLiteException.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="message">String Message</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.SQLite.SQLiteDataTable">
+            <summary>
+            SQLite Data Table Class
+            </summary>
+            <remarks> Since .NET Micro Framework does not support <c>DataTable</c> class. This class is a simple replacement. 
+            The objects of this class are used to store tabulated data in an array of same size <c>ArrayList</c> objects. Each column data is store in an <c>ArryList</c> object.
+            The size of the array of <c>ArrayList</c> indicates the number of columns.
+            The Size of any ArrayList object indicates the number of rows.
+            This class is usually used to store the result of SQL Query <c>SQLite.ExecuteQuery()</c>.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.SQLiteDataTable.#ctor(System.Int32,System.String[])">
+            <summary>
+            Constructor
+            </summary>
+            <remarks> The constructor create a new Table with number of columns <c>columns_count</c> and zero rows.
+            <c>ColumnNames</c> array of String objects should contain the origin names of the columns and the number of String should match <c>columns_count</c>.
+            </remarks>
+            <param name="columns_count">Number of columns</param>
+            <param name="ColumnNames"> Array of String objects containing the orign names of columns</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.SQLiteDataTable.SetRecord(System.Int32,System.Int32,System.Object)">
+            <summary>
+            set certain record value
+            </summary>
+            <param name="column">column number</param>
+            <param name="row">row number</param>
+            <param name="value">the value to be stored</param>
+            <returns>returns <c>true</c> if the record was exicted</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.SQLiteDataTable.ReadRecord(System.Int32,System.Int32)">
+            <summary>
+            returns a reference to the record.
+            </summary>
+            <param name="column">column number</param>
+            <param name="row">row number</param>
+            <returns> Record Object</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.SQLiteDataTable.AddRow">
+            <summary>
+            Adds a new raw to table end with null objects.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.SQLite.SQLiteDataTable.Rows">
+            <summary>
+            Read-only SQLite Rows count.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.SQLite.SQLiteDataTable.Columns">
+            <summary>
+             Read-only SQLite Columns count.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.SQLite.SQLiteDataTable.ColumnOriginNames">
+            <summary>
+            Returns a copy of array of String objects that contains the orign names of columns.
+            </summary>
+        </member>
+        <member name="P:GHIElectronics.NETMF.SQLite.SQLiteDataTable.ColumnData">
+            <summary>
+            Returns a copy of array of ArrayList objects that contains tabulated data, each ArrayList cotains column data.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.SQLite.Database">
+            <summary>
+            Database class for database access.
+            </summary>
+            <remarks>
+            ChipworkX supports SQLite database version 3.6.13<br/>
+            This Class exposes simple methods to open, close and process SQL queries.<br/>
+            ChipworkX firmware supports openning multiple database files.<br/>
+            Currently, this version supports INTEGER, DOUBLE and TEXT record types.<br/> 
+            </remarks>
+            <example>
+            <code>
+<![CDATA[
+using System;
+using Microsoft.SPOT;
+using System.Collections;
+using System.IO;
+using Microsoft.SPOT.IO;
+using GHIElectronics.NETMF.IO;
+using GHIElectronics.NETMF.SQLite;
+
+
+namespace Database_Example_4._0
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            try
+            {
+                // Mount NAND Flash File Media
+                PersistentStorage ps = new PersistentStorage("NAND");
+                ps.MountFileSystem();
+
+                // Format the media if it was not.
+                VolumeInfo nand = new VolumeInfo("NAND");
+                if (!nand.IsFormatted)
+                {
+                    nand.Format("FAT", 0);
+                }
+                // Create new database file
+                Database myDatabase = new Database();
+                // Open a new Database in NAND Flash
+                myDatabase.Open("\\NAND\\myDatabase.dbs");
+                //add a table
+                myDatabase.ExecuteNonQuery(
+                  "CREATE Table Temperature" +
+                  "(Room TEXT, Time INTEGER, Value DOUBLE)");
+
+                //add rows to table
+                myDatabase.ExecuteNonQuery(
+                  "INSERT INTO Temperature (Room, Time,Value) " +
+                  "VALUES ('Kitchen',010000,4423)");
+
+                myDatabase.ExecuteNonQuery(
+                 "INSERT INTO Temperature (Room, Time,Value) " +
+                 "VALUES ('living room',053000,9300)");
+
+                myDatabase.ExecuteNonQuery(
+                 "INSERT INTO Temperature (Room, Time,Value) " +
+                 "VALUES ('bed room',060701,7200)");
+
+                // Process SQL query and save returned records in SQLiteDataTable
+                SQLiteDataTable table = myDatabase.ExecuteQuery("SELECT * FROM Temperature");
+
+                // Get a copy of columns orign names example
+                String[] origin_names = table.ColumnOriginNames;
+
+                // Get a copy of table data example
+                ArrayList[] tabledata = table.ColumnData;
+
+
+                String temp = "Fields: ";
+                for (int i = 0; i < table.Columns; i++)
+                {
+                    temp += table.ColumnOriginNames[i] + " |";
+                }
+                Debug.Print(temp);
+                object obj;
+                for (int j = 0; j < table.Rows; j++)
+                {
+                    temp = j.ToString() + " ";
+                    for (int i = 0; i < table.Columns; i++)
+                    {
+                        obj = table.ReadRecord(i, j);
+                        if (obj == null)
+                            temp += "N/A";
+                        else
+                            temp += obj.ToString();
+                        temp += " |";
+                    }
+                    Debug.Print(temp);
+
+                }
+                myDatabase.Close();
+                ps.UnmountFileSystem();
+                ps.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.Print(e.Message);
+                Debug.Print(Database.GetLastError());
+            }
+           
+        }
+
+    }
+}
+
+]]>
+</code>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.#ctor">
+            <exclude/>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.GetLastError">
+            <summary>
+            Returns last Error Message thrown by SQLite
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.Open(System.String)">
+            <summary>
+            Opens or creates SQLite database with the specified path.<br/>
+            The path could be to RAM ":memory:" or to a file "\\SD\\mydatabase.dat"
+            </summary>
+            <param name="filename"> :memory: to create database in RAM</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.Close">
+            <summary>
+            Closes the SQLite database
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.PrepareSQLStatment(System.String)">
+            <summary>
+            Prepares a SQL statement for execution
+            </summary>
+            <param name="query">SQL query</param>
+            <returns>Pointer to SQLite prepared statement</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.FinalizeSQLStatment(System.Int32)">
+            <summary>
+            Finalizes a SQLite statement
+            </summary>
+            <param name="stmHandle">
+            Pointer to SQLite prepared statement
+            </param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.ExecuteNonQuery(System.String)">
+            <summary>
+            Executes a query that returns no results
+            </summary>
+            <param name="query">SQL query to execute</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.SQLite.Database.ExecuteQuery(System.String)">
+            <summary>
+            Executes a query and stores the results in 
+            a SQLiteDataTable
+            </summary>
+            <param name="query">SQL query to execute</param>
+            <returns>SQLiteDataTable of results</returns>
+        </member>
+    </members>
+</doc>

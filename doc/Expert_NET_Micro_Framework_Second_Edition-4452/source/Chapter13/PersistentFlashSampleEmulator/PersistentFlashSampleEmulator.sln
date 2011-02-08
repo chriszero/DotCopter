@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistentFlashSampleEmulator", "PersistentFlashSampleEmulator\PersistentFlashSampleEmulator.csproj", "{A82D82D2-C7BC-4240-A864-4B5C72DEA74E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A82D82D2-C7BC-4240-A864-4B5C72DEA74E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A82D82D2-C7BC-4240-A864-4B5C72DEA74E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A82D82D2-C7BC-4240-A864-4B5C72DEA74E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A82D82D2-C7BC-4240-A864-4B5C72DEA74E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

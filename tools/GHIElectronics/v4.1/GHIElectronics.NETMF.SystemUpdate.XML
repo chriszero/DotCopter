@@ -1,0 +1,360 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.SystemUpdate</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.System.SystemUpdate">
+            <summary>
+            Provides in-field update functionality.
+            </summary>
+            <remarks>
+            This functionality allows devices that are deployed in field to update their software automatically without external help. This is very useful in remote and end users' applications.<br/>
+            The class offers several methods of updating. You can update the managed application only or the entire device (including GHI firmware files). Also, it provides a managed C# bootloader that the user will provide. This is different from the GHI low level bootloader that already exists on the device.<br/>
+            <br/>
+            First, the system update is disabled by default and the entire user FLASH is available for the managed application. When system update gets enabled, it splits the FLASH into two managed regions. The first region is called the managed bootloader and the second is called the managed application which is the main application.<br/>
+            Both regions are used to deploy applications and the user will provide two seperate applications to handle the system update and main application.<br/>
+            <br/>
+            The managed bootloader region is where the user will do the system update. The update files (application or GHI firmware files) can be obtained any way possible. For example, they can be on an SD card or a network server. The user has to get the necessary files and pass them to <c>SystemUpdate</c> class and the device will update itself.<br/>
+            <br/>
+            The application region is where the main application resides.<br/>
+            <br/>
+            You can activate each region seperately. For example, you can access the bootloader using <c>SystemUpdate.AccessBootloader</c> and then you are ready to deploy the program that will update the device. Similarly, you can access the main application using <c>SystemUpdate.AccessApplication</c>.<br/>
+            Only one of these modes can be active at any time.<br/>
+            <br/>
+            <strong style="color:blue">Platform Support</strong><br/>
+            EMX and ChipworkX supports all system update features.<br/>
+            USBizi supports all system update features except for Complete Update functionality.<br/>
+            <br/>
+            <strong style="color:blue">Enabling System Update</strong><br/>
+            To enable system update, use the following: <c>SystemUpdate.EnableBootloader</c>. This will enable the C# managed bootloader.<br/>
+            <strong>Note: </strong>once this is called the FLASH is formatted and your application will be erased. Also, the FLASH will be split into two regions, the bootloader and the application. The bootloader region is small as it is only intended to do a specific task.<br/>
+            This method needs few seconds to complete and the device will be rebooted automatically and then it will start in <strong>Application</strong> mode. If you have an LCD connected, you will see "Deployment Application Mode" on screen. Now you can write applications as normal. The <strong>Bootloader</strong> is in seperate place.<br/>
+            You can obtain the current mode at any time in any mode. This can be used if you do not have an LCD or for debugging purposes. This will obtain the mode: <c>SystemUpdate.GetMode</c>.<br/>
+            <br/>
+            <strong>Bootloader reserved size: </strong> The following amounts of FLASH are reserved for the managed booltoader once system update is enabled. The rest is for your main application.<br/>
+            USBizi: 52KB. EMX: 192KB. ChipworkX: 256KB.<br/>
+            <br/>
+            <strong>Note: </strong> To disable system update and the managed bootloader, the user has to enter the GHI low level bootloader to erase the entire device. See your platform documentation on details how to completely erase your device (application, firmware...etc).<br/>
+            <br/>
+            <strong style="color:blue">Accessing The Bootloader</strong><br/>
+            You have to access the managed bootloader to do the system update. Your main application can look for updates periodically on a server or as specified by end user. To access the bootloader, use the following: <c>SystemUpdate.AccessBootloader</c>.<br/>
+            This will reboot the device into the managed bootloader mode. If you have an LCD connected, you will see "Deployment Bootloader Mode" on screen. It will stay in this mode even on future reboots until <c>SystemUpdate.AccessApplication</c> is called.<br/>
+            The bootloader has smaller FLASH size and smaller RAM size for certain platforms.<br/>
+            <br/>
+            <strong style="color:blue">Updating The Main Application Only (ApplicationUpdate)</strong><br/>
+            Using this option, you can make the device always updatable and fail safe is case of bugs or update failures. Once the bootloader mode is enabled, it will always be active and you can update as necessary until done and then access the main application again using <c>SystemUpdate.AccessApplication</c>.<br/>
+            The update is done simply be passing the application file to <c>SystemUpdate.ApplicationUpdate.Write</c>.<br/>
+            <br/>
+            <strong>Obtaining the Application File</strong><br/>
+            To obtain the application file, first you have to develop your application and deploy it to the device using Visual Studio. Next, you can read it using MFDeploy (on EMX and ChipworkX) or GHI loader (on USBizi). The needed file is a SREC file with the application assemblies.<br/>
+            For MFDeploy, first make sure Application mode is active because MFDeploy will be reading this region. Once active, go to "Target-&gt;Application Deploymnet-&gt;Create Application Deployment". Then select the application file name and a key to sign your application. Note that you only need your application hex file and NOT the key or the signature file (.sig) for in-field update. MFDeploy documentation has all necessary details.<br/>
+            For USBizi, MFDeploy cannot read your application. It has to be read using GHI's bootloader, see 'G' command in USBizi user manual. This command will read the entire FLASH (managed bootloader and main application) as binary format which is not what exactly needed. To extract the application in SREC format, we need to convert the first 96KB. This <a href="../USBizi_ExtractApplication.exe">program</a> does this for you. You have to invoke it using the command line and provide an input file name. It will then output the needed application file. The source code file is <a href="../USBizi_ExtractApplication.cs">here</a> for reference.<br/>
+            <br/>
+            The update is started by calling <c>SystemUpdate.ApplicationUpdate.Start</c>. Note once the update is started, your main application is erased. Then proceed by <c>Write</c>s and finally call <c>End</c>. Once done, the main application ia accessed using <c>SystemUpdate.AccessApplication</c>.<br/>
+            <br/>
+            <strong style="color:blue">Updating The Entire Device (CompleteUpdate)</strong><br/>
+            You can update the entire device (managed application and GHI's firmware files). Note that ALL necessary update files must be provided. You have to option to update or NOT update TinyBooter.<br/>
+            GHI firmware files and TinyBooter are available in the GHI's SDK. The main managed application can be obtained as stated in previous section. You still need the managed bootloader. This can be obtained by accessing the managed bootloader mode and then reading it from MFDeploy as before.<br/>
+            Note that Extended Weak References are not erased. Also, any settings, such as network configurations and LCD parameters, will be erased and need to be set again after updating.<br/>
+            <br/>
+            Note that in this mode nothing is updated or physically written until <c>SystemUpdate.CompleteUpdate.End</c> is called. Updating takes a few second, during this time a power failure may cause only portion of the files to be written and the device must be updated manually in this case. Once done, the device will be rebooted in main application mode.<br/>
+            <br/>
+            <strong style="color:blue">AlwaysRunBootloader Mode</strong><br/>
+            It can be useful in some cases to always run the managed bootloader before the main application. For example, it can always check for updates and do the updates as necessary and then run the application. Activating this mode using <c>SystemUpdate.AlwaysRunBootloader</c>, will always run the managed bootloader on power up (when power completely disconnected and then connected again) regardless of other settings. Note that future reboots activate the normal modes.<br/>
+            If this mode is needed, it is highly recommended to enable this option AFTER done implementing the main application and the managed bootloader. You may have problems debugging the device and deploying applications because of mode switching. The user has to disable this option to debug and deploy to the device normally.<br/>
+            </remarks>
+            <example>
+            First, we need to enable the bootloader. Deploy a program that calls <c>SystemUpdate.EnableBootloader()</c>.<br/>
+            After the board reboots, we will be in application mode. Now you can write your normal application which will include the system update option. Depending on your needs, the system update can be started when a user chooses to or it can be automatic from a secure server...etc<br/>
+            Next, deploy the following program which will start the in-field update when you press the right button but do NOT press the button yet.<br/>
+            <code>
+<![CDATA[
+using System;
+using System.Threading;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.System;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            if (SystemUpdate.GetMode() != SystemUpdate.SystemUpdateMode.Application)
+                throw new InvalidOperationException("We are not in application mode!");
+
+            // set up the right button to do the system update
+            InterruptPort rightButton = new InterruptPort(HardwareProvider.HwProvider.GetButtonPins(Button.VK_RIGHT), true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeLow);
+            rightButton.OnInterrupt += new NativeEventHandler(rightButton_OnInterrupt);
+
+            Debug.Print("This is the normal application working...");
+            //...
+            //...
+
+            Thread.Sleep(Timeout.Infinite);           
+        }
+
+        static void rightButton_OnInterrupt(uint data1, uint data2, DateTime time)
+        {
+            // Update the system using bootloader
+            SystemUpdate.AccessBootloader();
+        }
+
+    }
+}
+]]>
+</code>
+            <br/>
+            Now we have to read this application using MFDeploy. Go to MFDeploy then "Target-&gt;Application Deploymnet-&gt;Create Application Deployment". Then select the application file name (for example, app.hex) and a key to sign your application. Note that you only need your application hex file and NOT the key or the signature file (.sig) for in-field update. MFDeploy documentation has all necessary details.<br/>
+            When done, let the application run. Press the right button which simulates starting the in-field update option. The board will reboot automatically in bootloader mode. In this mode you have to deploy a program that writes the necessary application files. Let's start by updating the managed application only. Deploy the following program:<br/>
+            <code>
+<![CDATA[
+using System;
+using System.IO;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.System;
+using GHIElectronics.NETMF.IO;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            if (SystemUpdate.GetMode() != SystemUpdate.SystemUpdateMode.Bootloader)
+                throw new InvalidOperationException("We must be in bootloader mode!");
+
+            // set up the right button to do the system update
+            InterruptPort rightButton = new InterruptPort(HardwareProvider.HwProvider.GetButtonPins(Button.VK_RIGHT), true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeLow);
+
+            // wait for it to be pressed
+            while (rightButton.Read())
+                ;
+
+            PersistentStorage sd = new PersistentStorage("SD");
+            sd.MountFileSystem();
+
+            string fileName = "\\SD\\app.hex";
+
+            FileStream file = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+
+            // start update
+            SystemUpdate.ApplicationUpdate.Start();
+
+            // read the file in chucks
+            byte[] buffer = new byte[10 * 1024];
+            int length;
+
+            do
+            {
+                length = file.Read(buffer, 0, buffer.Length);
+                SystemUpdate.ApplicationUpdate.Write(buffer, 0, length);
+
+            } while (length == buffer.Length);
+
+            file.Close();
+
+            // End update
+            SystemUpdate.ApplicationUpdate.End();
+
+            // Access the application
+            SystemUpdate.AccessApplication();
+        }
+
+    }
+}
+]]>
+</code>
+            Insert an SD card with the app.hex in its root directory. When you press the right button, the board will update itself from an SD card.<br/>
+            <br/>
+            If you need to completely update the device using <c>CompleteUpdate</c>, you need to make sure you are in bootloader mode first. If you are in application mode, press the right button to enter bootloader mode. Then deploy the following prgram which will update the device entirely when you press the right button again. Deploy the program and do NOT press the button yet.<br/>
+            <code>
+<![CDATA[
+using System;
+using System.IO;
+using Microsoft.SPOT;
+using Microsoft.SPOT.Hardware;
+
+using GHIElectronics.NETMF.System;
+using GHIElectronics.NETMF.IO;
+
+namespace Example
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            if (SystemUpdate.GetMode() != SystemUpdate.SystemUpdateMode.Bootloader)
+                throw new InvalidOperationException("We must be in bootloader mode!");
+
+            // set up the right button to do the system update
+            InterruptPort rightButton = new InterruptPort(HardwareProvider.HwProvider.GetButtonPins(Button.VK_RIGHT), true, Port.ResistorMode.PullUp, Port.InterruptMode.InterruptEdgeLow);
+
+            // wait for it to be pressed
+            while (rightButton.Read())
+                ;
+
+            PersistentStorage sd = new PersistentStorage("SD");
+            sd.MountFileSystem();
+
+            string[] files = new string[]{
+                "\\SD\\ER_FLASH",   // GHI ChipworX firmware (Other platforms like EMX may have different files)
+                "\\SD\\ER_CONFIG",  // GHI ChipworX firmware (Other platforms like EMX may have different files)
+                "\\SD\\app.hex",    // main application 
+                "\\SD\\managedBootloader.hex",  // managed bootloader
+            };
+
+            // start update
+            SystemUpdate.CompleteUpdate.Start();
+
+            foreach (string fileName in files)
+            {
+                FileStream file = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+
+                // read the file in chucks
+                byte[] buffer = new byte[10 * 1024];
+                int length;
+
+                do
+                {
+                    length = file.Read(buffer, 0, buffer.Length);
+                    SystemUpdate.CompleteUpdate.Write(buffer, 0, length);
+
+                } while (length == buffer.Length);
+
+                file.Close();
+            }
+
+            // End update
+            SystemUpdate.CompleteUpdate.End();
+
+            // device will reboot automatically
+        }
+
+    }
+}
+]]>
+</code>
+            We need to read the bootloader using MFDeploy.  Go to MFDeploy then "Target-&gt;Application Deploymnet-&gt;Create Application Deployment". Then select the application file name (for example, managedBootloader.hex) and a key to sign your application. Note that you only need your application hex file and NOT the key or the signature file (.sig) for in-field update. MFDeploy documentation has all necessary details.<br/>
+            <br/>
+            Everything is ready now. Put all firmware files on the SD card. This inclues firmware files from GHI SDK, the app.hex and managedBootloader.hex.<br/>
+            We are still in bootloader mode now, if you press the right button, the device will update itself with all files from SD card in few seconds and then your managed application will run automatically. Note that we didn't update TinyBooter in this example but it can be added if needed.<br/>
+            </example>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.GetMode">
+            <summary>
+            Gets current system mode.
+            </summary>
+            <returns>Current system mode.</returns>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.EnableBootloader">
+            <summary>
+            Enables the managed bootloader to do system update.
+            </summary>
+            <remarks>
+            This erases the entire application and splits flash into two regions, the managed bootloader and the main application. The device will reboot into application mode when done.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.AccessBootloader">
+            <summary>
+            Accesses the managed bootloader when the application mode is currently active.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.AccessApplication">
+            <summary>
+            Accesses the main application when the managed bootloader is currently active.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.AlwaysRunBootloader(System.Boolean)">
+            <summary>
+            Always runs the managed bootloader on powerup.
+            </summary>
+            <remarks>
+            The managed bootloader mode will be forced upon power up (when power completely disconnected and then connected again). Note that future reboots activate the normal modes.
+            </remarks>
+            <param name="isEnabled"><c>true</c> to enable this mode.</param>
+        </member>
+        <member name="T:GHIElectronics.NETMF.System.SystemUpdate.SystemUpdateMode">
+            <summary>
+            Current system mode.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.System.SystemUpdate.SystemUpdateMode.NonFormatted">
+            <summary>
+            This is the default. All FLASH is used for the user main application.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.System.SystemUpdate.SystemUpdateMode.Application">
+            <summary>
+            There are two regions, managed bootloader and application. Currently, the main application is active.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.System.SystemUpdate.SystemUpdateMode.Bootloader">
+            <summary>
+            There are two regions, managed bootloader and application. Currently, the managed bootloader is active.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.System.SystemUpdate.CompleteUpdate">
+            <summary>
+            Completely updates the device.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.CompleteUpdate.Start">
+            <summary>
+            Starts complete update.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.CompleteUpdate.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes firmware and application srec files.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.CompleteUpdate.WriteTinyBooter(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes the TinyBooter file.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.CompleteUpdate.End">
+            <summary>
+            Ends update procedure.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.System.SystemUpdate.ApplicationUpdate">
+            <summary>
+            Updates the main application only.
+            </summary>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.ApplicationUpdate.Start">
+            <summary>
+            Starts application update.
+            </summary>
+            <remarks>
+            Note that the main application will be erased after calling this method.
+            </remarks>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.ApplicationUpdate.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes the application file.
+            </summary>
+            <param name="buffer">Buffer.</param>
+            <param name="offset">Offset.</param>
+            <param name="count">Count.</param>
+        </member>
+        <member name="M:GHIElectronics.NETMF.System.SystemUpdate.ApplicationUpdate.End">
+            <summary>
+            Ends application update.
+            </summary>
+        </member>
+    </members>
+</doc>

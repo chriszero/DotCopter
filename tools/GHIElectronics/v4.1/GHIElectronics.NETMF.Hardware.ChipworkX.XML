@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GHIElectronics.NETMF.Hardware.ChipworkX</name>
+    </assembly>
+    <members>
+        <member name="T:GHIElectronics.NETMF.Hardware.ChipworkX">
+            <summary>
+            Exposes ChipworkX specific functionality.
+            </summary>
+        </member>
+        <member name="T:GHIElectronics.NETMF.Hardware.ChipworkX.Pin">
+            <summary>
+            Provides Pin definitions for ChipworkX.
+            </summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.GPIO_NONE">
+            <summary>A value indicating that no GPIO pin is specified.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA0">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA1">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA2">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA4">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA5">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA6">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA7">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA8">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA9">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA10">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA11">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA12">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA13">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA14">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA15">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA16">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA17">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA18">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA19">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA20">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA21">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA22">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA23">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA24">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA25">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA26">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA27">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA28">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA29">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA30">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PA31">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB0">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB1">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB2">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB3">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB4">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB5">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB6">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB7">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB8">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB9">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB10">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB11">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB12">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB13">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB15">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB16">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB17">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB18">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB19">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB20">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB21">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB22">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB23">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB24">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB25">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB26">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB27">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB28">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB29">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB30">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PB31">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC2">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC3">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC4">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC5">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC6">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC7">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC8">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC9">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC10">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC12">
+            <summary>Digital I/O.</summary>
+        </member>
+        <member name="F:GHIElectronics.NETMF.Hardware.ChipworkX.Pin.PC13">
+            <summary>Digital I/O.</summary>
+        </member>
+    </members>
+</doc>
