@@ -63,21 +63,18 @@ namespace DotCopter.FlightController
 
                 if (systemArmed && (currentTime >= (lastSensorTime + loopSettings.SensorLoopPeriod)))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastSensorTime)).ToString());
                     lastSensorTime = currentTime;
                     gyro.Update();
                 }
 
                 if (systemArmed && (currentTime >= (lastControlTime + loopSettings.ControlAlgorithmPeriod)))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastControlTime)).ToString());
                     lastControlTime = currentTime;
                     pid.Update(radio.Axes,gyro.Axes,deltaTimeFactor);
                 }
 
                 if (currentTime >= (lastMotorTime + loopSettings.MotorLoopPeriod))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastMotorTime)).ToString());
                     if (systemArmed)
                         mixer.Update(radio.Throttle, pid.Axes);
                     else
@@ -88,10 +85,10 @@ namespace DotCopter.FlightController
                 
                 if (systemArmed && (currentTime >= (lastTelemetryTime + loopSettings.TelemetryLoopPeriod)))
                 {
-                    telemetryData.Update(gyro.Axes, radio.Axes, pid.Axes, currentTime);
+                    //telemetryData.Update(gyro.Axes, radio.Axes, pid.Axes, currentTime);
                     lastTelemetryTime = currentTime;
-                    logger.Write(telemetryData);
-                    Debug.GC(true);
+                    //logger.Write(telemetryData);
+                    //Debug.GC(true);
                 }
             }
         }
