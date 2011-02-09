@@ -37,11 +37,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="TestGyro.cs" />
+    <Compile Include="TestMotor.cs" />
+    <Compile Include="TestRadio.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.SPOT.Graphics" />
+    <Reference Include="Microsoft.SPOT.Hardware" />
     <Reference Include="Microsoft.SPOT.Native">
     </Reference>
+    <Reference Include="System.IO" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
@@ -49,5 +54,39 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DotCopter.Avionics\DotCopter.Avionics.csproj">
+      <Project>{6D18BE7A-7F4E-4756-B5DB-100F1718E7D6}</Project>
+      <Name>DotCopter.Avionics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Commons\DotCopter.Commons.csproj">
+      <Project>{C3283CF0-C6E6-4544-9764-F0C3F7BE6AD3}</Project>
+      <Name>DotCopter.Commons</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.ControlAlgorithms.Implementations\DotCopter.ControlAlgorithms.Implementations.csproj">
+      <Project>{6E0F769A-4DED-4451-AA03-951D89743F25}</Project>
+      <Name>DotCopter.ControlAlgorithms.Implementations</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.ControlAlgorithms\DotCopter.ControlAlgorithms.csproj">
+      <Project>{CDF84595-3709-4FDB-9EC3-75A848FC0349}</Project>
+      <Name>DotCopter.ControlAlgorithms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.FlightController\DotCopter.FlightController.csproj">
+      <Project>{844AAB6F-29E9-4CED-89A7-6031E0926BE1}</Project>
+      <Name>DotCopter.FlightController</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Framework\DotCopter.Framework.csproj">
+      <Project>{ADF12587-A60F-4077-9D4B-40D3EE96EE40}</Project>
+      <Name>DotCopter.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Hardware.Implementations\DotCopter.Hardware.Implementations.csproj">
+      <Project>{2D48BC1F-AE1E-44D5-8CE8-A8FF62044779}</Project>
+      <Name>DotCopter.Hardware.Implementations</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DotCopter.Hardware\DotCopter.Hardware.csproj">
+      <Project>{38725121-EA4D-444E-BB6A-401F4999F156}</Project>
+      <Name>DotCopter.Hardware</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

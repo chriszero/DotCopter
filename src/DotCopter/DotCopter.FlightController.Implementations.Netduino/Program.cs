@@ -1,4 +1,5 @@
-﻿using DotCopter.Commons.Logging;
+﻿using System.IO;
+using DotCopter.Commons.Logging;
 using DotCopter.Commons.Serialization;
 using DotCopter.Commons.Utilities;
 using DotCopter.ControlAlgorithms.Implementations.PID;
@@ -19,7 +20,7 @@ namespace DotCopter.FlightController.Implementations.Netduino
         {
             ISDCard sdCard = new SDCard();
             //todo: need sdCard mode detection
-            ILogger logger = new PersistenceWriter(@"\SD\telemetry", new TelemetryFormatter());
+            ILogger logger = new PersistenceWriter(new FileStream(@"\SD\telemetry.bin", FileMode.CreateNew), new TelemetryFormatter());
             //ILogger logger = new DebugLogger(); // use for debugging
             //ILogger logger = new NullLogger(); // use for release
 

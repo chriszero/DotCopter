@@ -47,8 +47,11 @@
     <Compile Include="Serialization\TelemetryData.cs" />
     <Compile Include="Serialization\TelemetryFormatter.cs" />
     <Compile Include="Utilities\BitConverter.cs" />
+    <Compile Include="Utilities\IStopWatch.cs" />
+    <Compile Include="Utilities\NullStopWatch.cs" />
     <Compile Include="Utilities\Scale.cs" />
     <Compile Include="Utilities\Logic.cs" />
+    <Compile Include="Utilities\StopWatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GHIElectronics.NETMF.USBClient, Version=4.1.3.0, Culture=neutral, processorArchitecture=MSIL" />

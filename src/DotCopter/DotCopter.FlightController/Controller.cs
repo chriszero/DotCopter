@@ -40,8 +40,9 @@ namespace DotCopter.FlightController
                     maxLoopTime = deltaTime;
                 }
 
-                if (currentTime > (lastRadioTime + loopSettings.RadioLoopPeriod))
+                if (currentTime >= (lastRadioTime + loopSettings.RadioLoopPeriod))
                 {
+                    Debug.Print((loopSettings.LoopUnit/(currentTime-lastRadioTime)).ToString());
                     lastRadioTime = currentTime;
                     radio.Update();
                     systemArmed = radio.Throttle > motorSettings.MinimumOutput;
@@ -61,20 +62,23 @@ namespace DotCopter.FlightController
                     }
                 }
 
-                if (systemArmed && (currentTime > (lastSensorTime + loopSettings.SensorLoopPeriod)))
+                if (systemArmed && (currentTime >= (lastSensorTime + loopSettings.SensorLoopPeriod)))
                 {
+                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastSensorTime)).ToString());
                     lastSensorTime = currentTime;
                     gyro.Update();
                 }
 
-                if (systemArmed && (currentTime > (lastControlTime + loopSettings.ControlAlgorithmPeriod)))
+                if (systemArmed && (currentTime >= (lastControlTime + loopSettings.ControlAlgorithmPeriod)))
                 {
+                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastControlTime)).ToString());
                     lastControlTime = currentTime;
                     pid.Update(radio.Axes,gyro.Axes,deltaTimeFactor);
                 }
 
-                if (currentTime > (lastMotorTime + loopSettings.MotorLoopPeriod))
+                if (currentTime >= (lastMotorTime + loopSettings.MotorLoopPeriod))
                 {
+                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastMotorTime)).ToString());
                     if (systemArmed)
                         mixer.Update(radio.Throttle, pid.Axes);
                     else
@@ -82,12 +86,13 @@ namespace DotCopter.FlightController
                     
                     lastMotorTime = currentTime;
                 }
-
-                if (systemArmed && (currentTime > (lastTelemetryTime + loopSettings.TelemetryLoopPeriod)))
+                
+                if (systemArmed && (currentTime >= (lastTelemetryTime + loopSettings.TelemetryLoopPeriod)))
                 {
                     telemetryData.Update(gyro.Axes, radio.Axes, pid.Axes, currentTime);
                     lastTelemetryTime = currentTime;
                     logger.Write(telemetryData);
+                    Debug.GC(true);
                 }
 
                 //Debug.GC(true);
