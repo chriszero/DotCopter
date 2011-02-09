@@ -39,7 +39,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.ControlAlgorithms
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.ControlAlgorithms.Implementations", "DotCopter.ControlAlgorithms.Implementations\DotCopter.ControlAlgorithms.Implementations.csproj", "{6E0F769A-4DED-4451-AA03-951D89743F25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.FlightController.TestHarness", "DotCopter.FlightController.TestHarness\DotCopter.FlightController.TestHarness.csproj", "{FA58DD0C-B6E9-4CA2-A968-D2BCCDF13D7B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.FlightController.Implementations.TestHarness", "DotCopter.FlightController.TestHarness\DotCopter.FlightController.Implementations.TestHarness.csproj", "{FA58DD0C-B6E9-4CA2-A968-D2BCCDF13D7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

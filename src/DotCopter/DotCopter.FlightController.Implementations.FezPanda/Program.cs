@@ -1,4 +1,5 @@
-﻿using DotCopter.Commons.Logging;
+﻿using System.IO;
+using DotCopter.Commons.Logging;
 using DotCopter.Commons.Serialization;
 using DotCopter.Commons.Utilities;
 using DotCopter.ControlAlgorithms.Implementations.Mixing;
@@ -39,7 +40,7 @@ namespace DotCopter.FlightController.Implementations.FezPanda
                 sdCard.MountFileSystem();
             else
                 new TelemetryPresenter(sdCard,(Cpu.Pin) FezPin.Digital.LED);
-            ILogger logger = new PersistenceWriter(@"\SD\telemetry.bin", new TelemetryFormatter());
+            ILogger logger = new PersistenceWriter(new FileStream(@"\SD\telemetry.bin",FileMode.CreateNew), new TelemetryFormatter());
 
             //Sensors
             TWIBus twiBus = new TWIBus();

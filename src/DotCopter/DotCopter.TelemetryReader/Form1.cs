@@ -3,7 +3,6 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 using DotCopter.Avionics;
-using DotCopter.Commons.Logging;
 using DotCopter.Commons.Serialization;
 
 namespace DotCopter.TelemetryReader
@@ -60,10 +59,10 @@ namespace DotCopter.TelemetryReader
 
         private static void btnCreateSample_Click(object sender, EventArgs e)
         {
-            TelemetryData axes = new TelemetryData();
-            PersistenceWriter logger = new PersistenceWriter(@"C:\testing\text", new TelemetryFormatter());
-            logger.Write(axes);
-            logger.Flush();
+            //TelemetryData axes = new TelemetryData();
+            //PersistenceWriter logger = new PersistenceWriter(@"C:\testing\text", new TelemetryFormatter());
+            //logger.Write(axes);
+            //logger.Flush();
         }
     }
 }
