@@ -15,7 +15,7 @@ namespace DotCopter.Hardware.Implementations.Gyro
         public ITG3200(TWIBus twiBus, float factor): base(0x69, 400, twiBus) 
         {
             _factor = factor;
-            Axes = new AircraftPrincipalAxes(0, 0, 0);
+            Axes = new AircraftPrincipalAxes { Pitch = 0, Roll = 0, Yaw = 0 };
             Initialize();
         }
 
@@ -40,7 +40,9 @@ namespace DotCopter.Hardware.Implementations.Gyro
             float roll = (short)(_buffer[2] << 8 | _buffer[3]) / _factor;
             float yaw = (short)(_buffer[4] << 8 | _buffer[5]) / _factor;
 
-            Axes.Update(pitch - _zeroPitch, roll - _zeroRoll, yaw - _zeroYaw);
+            Axes.Pitch = pitch - _zeroPitch;
+            Axes.Roll = roll - _zeroRoll;
+            Axes.Yaw = yaw - _zeroYaw;
         }
 
         private void Zero()
@@ -82,6 +84,6 @@ namespace DotCopter.Hardware.Implementations.Gyro
             }
         }
 
-        public AircraftPrincipalAxes Axes { get; private set; }
+        public AircraftPrincipalAxes Axes { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace DotCopter.FlightController
                 _rollController = new ProportionalIntegralDerivative(rollSettings);
                 _yawController = new ProportionalIntegralDerivative(yawSettings);
             }
-            Axes = new AircraftPrincipalAxes(0,0,0);
+            Axes = new AircraftPrincipalAxes(){Pitch = 0, Roll = 0, Yaw = 0};
         }
 
         public void Update(AircraftPrincipalAxes radio, AircraftPrincipalAxes gyro, float deltaTimeGain)
@@ -32,12 +32,12 @@ namespace DotCopter.FlightController
             _pitchController.Update(radio.Pitch, gyro.Pitch, deltaTimeGain);
             _rollController.Update(radio.Roll, gyro.Roll, deltaTimeGain);
             _yawController.Update(radio.Yaw, gyro.Yaw, deltaTimeGain);
-            Axes.Update(_pitchController.Output,
-                        _rollController.Output,
-                        _yawController.Output);
+            Axes.Pitch = _pitchController.Output;
+            Axes.Roll = _rollController.Output;
+            Axes.Yaw = _yawController.Output;
         }
 
-        public AircraftPrincipalAxes Axes { get; private set; }
+        public AircraftPrincipalAxes Axes;
 
     }
 }

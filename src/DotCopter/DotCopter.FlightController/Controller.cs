@@ -15,7 +15,6 @@ namespace DotCopter.FlightController
         {
             TelemetryData telemetryData = new TelemetryData();
             long previousTime = DateTime.Now.Ticks;
-            long executionTime = 0;
             long maxLoopTime = 0;
             long lastRadioTime = 0;
             long lastSensorTime = 0;
