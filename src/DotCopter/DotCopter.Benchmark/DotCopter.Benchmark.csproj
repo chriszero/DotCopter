@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <AssemblyName>DotCopter.Commons</AssemblyName>
-    <OutputType>Library</OutputType>
-    <RootNamespace>DotCopter.Commons</RootNamespace>
+    <AssemblyName>DotCopter.Benchmark</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DotCopter.Benchmark</RootNamespace>
     <ProjectTypeGuids>{b69e3092-b931-443c-abe7-7e7b65f2a37f};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C3283CF0-C6E6-4544-9764-F0C3F7BE6AD3}</ProjectGuid>
+    <ProjectGuid>{633F27D2-2DFE-4B7B-911D-7CE219D95BB4}</ProjectGuid>
     <TargetFrameworkVersion>v4.1</TargetFrameworkVersion>
     <NetMfTargetsBaseDir Condition="'$(NetMfTargetsBaseDir)'==''">$(MSBuildExtensionsPath32)\Microsoft\.NET Micro Framework\</NetMfTargetsBaseDir>
   </PropertyGroup>
@@ -28,38 +28,28 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
-    <Compile Include="Configuration\ConfigFileConfiguration.cs" />
-    <Compile Include="Configuration\IConfiguration.cs" />
-    <Compile Include="Configuration\InMemoryConfiguration.cs" />
-    <Compile Include="Configuration\SettingNotFoundException.cs" />
-    <Compile Include="Logging\DebugLogger.cs" />
-    <Compile Include="Logging\PersistanceReader.cs" />
-    <Compile Include="Serialization\INETMFBinaryFormatter.cs" />
-    <Compile Include="Logging\ILogger.cs" />
-    <Compile Include="Logging\PersistenceWriter.cs" />
-    <Compile Include="Logging\NullLogger.cs" />
+    <Compile Include="BitConverterTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Serialization\INETMFSerializable.cs" />
-    <Compile Include="Serialization\TelemetryData.cs" />
-    <Compile Include="Serialization\TelemetryFormatter.cs" />
-    <Compile Include="Utilities\BitConverter.cs" />
-    <Compile Include="Utilities\Scale.cs" />
-    <Compile Include="Utilities\Logic.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="PropertyTest.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="GHIElectronics.NETMF.USBClient, Version=4.1.3.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.SPOT.Native">
     </Reference>
-    <Reference Include="System.IO" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotCopter.Avionics\DotCopter.Avionics.csproj">
-      <Project>{6D18BE7A-7F4E-4756-B5DB-100F1718E7D6}</Project>
-      <Name>DotCopter.Avionics</Name>
-    </ProjectReference>
+    <EmbeddedResource Include="Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

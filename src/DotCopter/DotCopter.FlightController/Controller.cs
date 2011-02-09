@@ -5,6 +5,7 @@ using DotCopter.ControlAlgorithms.Mixing;
 using DotCopter.Hardware.Gyro;
 using DotCopter.Hardware.Motor;
 using DotCopter.Hardware.Radio;
+using Microsoft.SPOT;
 
 namespace DotCopter.FlightController
 {
@@ -54,7 +55,8 @@ namespace DotCopter.FlightController
                         //if (!loggingEnabled && !logFlushed)
                         //{
                             logger.Flush();
-                            //logFlushed = true;
+                        startupTime = DateTime.Now.Ticks;
+                        //logFlushed = true;
                         //}
                     }
                 }
@@ -87,6 +89,8 @@ namespace DotCopter.FlightController
                     lastTelemetryTime = currentTime;
                     logger.Write(telemetryData);
                 }
+
+                //Debug.GC(true);
             }
         }
     }
