@@ -42,11 +42,11 @@ namespace DotCopter.FlightController.TestHarness
         private static ControllerLoopSettings GetLoopSettings()
         {
             return new ControllerLoopSettings(
-                500,         //radioLoopFrequency
-                500,        //sensorLoopFrequency
-                500,        //controlAlgorithmFrequency
-                500,        //motorLoopFrequency
-                50,          //telemetryLoopFrequency
+                5000,         //radioLoopFrequency
+                5000,        //sensorLoopFrequency
+                5000,        //controlAlgorithmFrequency
+                5000,        //motorLoopFrequency
+                5000,          //telemetryLoopFrequency
                 10000000);  //loopUnit
         }
 

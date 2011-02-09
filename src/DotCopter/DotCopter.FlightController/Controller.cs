@@ -14,8 +14,8 @@ namespace DotCopter.FlightController
         public Controller(IMotorMixer mixer, AxesController pid, IGyro gyro, IRadio radio, ControllerLoopSettings loopSettings, MotorSettings motorSettings, ILogger logger)
         {
             TelemetryData telemetryData = new TelemetryData();
-            long startupTime = DateTime.Now.Ticks;
             long previousTime = DateTime.Now.Ticks;
+            long executionTime = 0;
             long maxLoopTime = 0;
             long lastRadioTime = 0;
             long lastSensorTime = 0;
@@ -30,55 +30,39 @@ namespace DotCopter.FlightController
 
             while (true)
             {
-                long currentTime = DateTime.Now.Ticks - startupTime;
-                long deltaTime = currentTime - previousTime;
-                float deltaTimeFactor = (float)deltaTime / loopSettings.LoopUnit;
-                previousTime = currentTime;
-
-                if (deltaTime > maxLoopTime)
-                {
-                    maxLoopTime = deltaTime;
-                }
-
+                long currentTime = DateTime.Now.Ticks;
                 if (currentTime >= (lastRadioTime + loopSettings.RadioLoopPeriod))
                 {
-                    Debug.Print((loopSettings.LoopUnit/(currentTime-lastRadioTime)).ToString());
+                    Debug.Print((loopSettings.LoopUnit/(float)(currentTime-lastRadioTime)).ToString());
                     lastRadioTime = currentTime;
                     radio.Update();
                     systemArmed = radio.Throttle > motorSettings.MinimumOutput;
                     if (!systemArmed)
-                    {
-                        //Commented this out, we should send in a null logger into constructor if we dont want logging,
-                        //and if we do want logging if the system is not armed we arent flying so this flush call requires 
-                        //if statement which i assume was put in because of performance hit, we are
-                        // are merely trying to ensire that the byte stream is written at shutdown
-                        //loggingEnabled = radio.Gear;
-                        //if (!loggingEnabled && !logFlushed)
-                        //{
-                            logger.Flush();
-                        startupTime = DateTime.Now.Ticks;
-                        //logFlushed = true;
-                        //}
-                    }
+                        logger.Flush();
                 }
 
+               
+                currentTime = DateTime.Now.Ticks;
                 if (systemArmed && (currentTime >= (lastSensorTime + loopSettings.SensorLoopPeriod)))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastSensorTime)).ToString());
+                    //Debug.Print((loopSettings.LoopUnit / (float)(currentTime - lastSensorTime)).ToString());
                     lastSensorTime = currentTime;
                     gyro.Update();
                 }
 
+                currentTime = DateTime.Now.Ticks;
                 if (systemArmed && (currentTime >= (lastControlTime + loopSettings.ControlAlgorithmPeriod)))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastControlTime)).ToString());
+                    //Debug.Print((loopSettings.LoopUnit / (float)(currentTime - lastControlTime)).ToString());
                     lastControlTime = currentTime;
-                    pid.Update(radio.Axes,gyro.Axes,deltaTimeFactor);
+                    pid.Update(radio.Axes, gyro.Axes, (float) (currentTime - previousTime)/loopSettings.LoopUnit);
+                    previousTime = currentTime;
                 }
 
+                currentTime = DateTime.Now.Ticks;
                 if (currentTime >= (lastMotorTime + loopSettings.MotorLoopPeriod))
                 {
-                    Debug.Print((loopSettings.LoopUnit / (currentTime - lastMotorTime)).ToString());
+                    //Debug.Print((loopSettings.LoopUnit / (float)(currentTime - lastMotorTime)).ToString());
                     if (systemArmed)
                         mixer.Update(radio.Throttle, pid.Axes);
                     else
@@ -86,16 +70,17 @@ namespace DotCopter.FlightController
                     
                     lastMotorTime = currentTime;
                 }
-                
+
+                /*
+                currentTime = DateTime.Now.Ticks;
                 if (systemArmed && (currentTime >= (lastTelemetryTime + loopSettings.TelemetryLoopPeriod)))
                 {
                     telemetryData.Update(gyro.Axes, radio.Axes, pid.Axes, currentTime);
                     lastTelemetryTime = currentTime;
-                    logger.Write(telemetryData);
-                    Debug.GC(true);
+                    //logger.Write(telemetryData);
+                    //Debug.GC(true);
                 }
-
-                //Debug.GC(true);
+                */
             }
         }
     }

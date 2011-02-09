@@ -17,7 +17,7 @@ namespace DotCopter.FlightController.TestHarness
 
         public float Throttle
         {
-            get { return 1f; }
+            get { return 16f; }
         }
 
         public bool Gear
