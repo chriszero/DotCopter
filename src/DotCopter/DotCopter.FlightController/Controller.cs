@@ -56,7 +56,8 @@ namespace DotCopter.FlightController
                         //if (!loggingEnabled && !logFlushed)
                         //{
                             logger.Flush();
-                            //logFlushed = true;
+                        startupTime = DateTime.Now.Ticks;
+                        //logFlushed = true;
                         //}
                     }
                 }
@@ -90,6 +91,8 @@ namespace DotCopter.FlightController
                     //logger.Write(telemetryData);
                     //Debug.GC(true);
                 }
+
+                //Debug.GC(true);
             }
         }
     }
