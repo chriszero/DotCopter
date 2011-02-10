@@ -5,6 +5,7 @@ using DotCopter.Commons.Utilities;
 using DotCopter.ControlAlgorithms.Implementations.Mixing;
 using DotCopter.ControlAlgorithms.Implementations.PID;
 using DotCopter.ControlAlgorithms.Mixing;
+using DotCopter.ControlAlgorithms.PID;
 using DotCopter.Hardware.Gyro;
 using DotCopter.Hardware.Motor;
 using DotCopter.Hardware.Radio;
@@ -15,27 +16,43 @@ namespace DotCopter.FlightController.TestHarness
     {
         public static void Main()
         {
-            IMotor testMotor = new TestMotor();
-            IMotorMixer mixer = new QuadMixer(testMotor, testMotor, testMotor, testMotor);
+            Motor testMotor = new TestMotor();
+            MotorMixer mixer = new QuadMixer(testMotor, testMotor, testMotor, testMotor);
             ILogger logger = new PersistenceWriter(new MemoryStream(), new TelemetryFormatter());
-            IGyro gyro = new TestGyro();
-            IRadio radio = new TestRadio();
-            ProportionalIntegralDerivativeSettings[] pidSettings = GetPIDSettings();
+            Gyro gyro = new TestGyro();
+            Radio radio = new TestRadio();
+            PIDSettings[] pidSettings = GetPIDSettings();
             AxesController axesController = new AxesController(pidSettings[0], pidSettings[1], pidSettings[2], true);
             ControllerLoopSettings loopSettings = GetLoopSettings();
-            TestController controller = new TestController(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(), logger);
+            Controller controller = new Controller(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(), logger);
         }
 
-        private static ProportionalIntegralDerivativeSettings[] GetPIDSettings()
+        private static PIDSettings[] GetPIDSettings()
         {
-            ProportionalIntegralDerivativeSettings pitchSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
+ 
+            PIDSettings pitchSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
 
-            ProportionalIntegralDerivativeSettings rollSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
+            PIDSettings rollSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
 
-            ProportionalIntegralDerivativeSettings yawSettings =
-                new ProportionalIntegralDerivativeSettings(3F, 0F, 0F, 2000F);
+            PIDSettings yawSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
             return new[] { pitchSettings, rollSettings, yawSettings };
         }
 

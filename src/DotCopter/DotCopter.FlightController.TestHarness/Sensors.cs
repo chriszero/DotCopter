@@ -5,9 +5,9 @@ namespace DotCopter.FlightController.TestHarness
 {
     public class Sensors
     {
-        private readonly IGyro _gyro;
+        private readonly Gyro _gyro;
 
-        public Sensors(IGyro gyro )
+        public Sensors(Gyro gyro )
         {
             _gyro = gyro;
         }
