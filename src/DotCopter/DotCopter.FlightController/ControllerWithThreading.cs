@@ -1,7 +1,6 @@
 using System;
 using DotCopter.Commons.Logging;
 using DotCopter.Hardware.Gyro;
-using DotCopter.Hardware.Motor;
 using DotCopter.Hardware.Radio;
 using Microsoft.SPOT;
 
@@ -9,10 +8,10 @@ namespace DotCopter.FlightController
 {
     public class ControllerWithThreading
     {
-        private readonly IMotors _motors;
+        //private readonly Motors _motors;
         private readonly AxesController _pid;
-        private readonly IGyro _gyro;
-        private readonly IRadio _radio;
+        private readonly Gyro _gyro;
+        private readonly Radio _radio;
         private readonly ControllerLoopSettings _loopSettings;
         private readonly ILogger _logger;
 
@@ -27,15 +26,15 @@ namespace DotCopter.FlightController
         private bool _running;
 
 
-        public ControllerWithThreading(IMotors motors, AxesController pid, IGyro gyro, IRadio radio, ControllerLoopSettings loopSettings, ILogger logger)
-        {
-            _motors = motors;
-            _pid = pid;
-            _gyro = gyro;
-            _radio = radio;
-            _loopSettings = loopSettings;
-            _logger = logger;
-        }
+        //public ControllerWithThreading(IMotors motors, AxesController pid, IGyro gyro, Radio radio, ControllerLoopSettings loopSettings, ILogger logger)
+        //{
+        //    _motors = motors;
+        //    _pid = pid;
+        //    _gyro = gyro;
+        //    _radio = radio;
+        //    _loopSettings = loopSettings;
+        //    _logger = logger;
+        //}
 
         public void Start()
         {
@@ -84,7 +83,7 @@ namespace DotCopter.FlightController
 
                 if (currentTime > (_lastMotorTime + _loopSettings.MotorLoopPeriod))
                 {
-                    _motors.Update(_radio.Throttle , _pid.Axes);
+                    //_motors.Update(_radio.Throttle , _pid.Axes);
                     _lastMotorTime = currentTime;
                 }
 

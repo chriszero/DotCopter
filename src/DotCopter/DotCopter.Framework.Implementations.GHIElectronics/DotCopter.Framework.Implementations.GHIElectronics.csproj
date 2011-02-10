@@ -31,7 +31,7 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PulseWidthModulation\PulseWidthModulation.cs" />
+    <Compile Include="PWM\PWM.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="GHIElectronics.NETMF.Hardware, Version=4.1.3.0, Culture=neutral, processorArchitecture=MSIL" />

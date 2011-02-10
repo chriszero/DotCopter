@@ -33,11 +33,9 @@
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
-    <Compile Include="Bus\TWIBus.cs" />
-    <Compile Include="Bus\TWISlave.cs" />
+    <Compile Include="Bus\I2CBus.cs" />
     <Compile Include="Gyro\DefaultGyro.cs" />
     <Compile Include="Gyro\ITG3200.cs" />
-    <Compile Include="Motor\DefaultMotors.cs" />
     <Compile Include="Motor\PWMMotor.cs" />
     <Compile Include="Motor\TWIMotor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -38,6 +38,7 @@
     <Compile Include="Configuration\SettingNotFoundException.cs" />
     <Compile Include="Logging\DebugLogger.cs" />
     <Compile Include="Logging\PersistanceReader.cs" />
+    <Compile Include="Logging\SerialLogger.cs" />
     <Compile Include="Serialization\INETMFBinaryFormatter.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\PersistenceWriter.cs" />

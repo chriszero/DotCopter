@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AssemblyName>FluentInterop</AssemblyName>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FluentInterop</RootNamespace>
+    <ProjectTypeGuids>{b69e3092-b931-443c-abe7-7e7b65f2a37f};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{647CAB5E-399C-48B3-865E-1FAC94B78AD9}</ProjectGuid>
+    <TargetFrameworkVersion>v4.1</TargetFrameworkVersion>
+    <NetMfTargetsBaseDir Condition="'$(NetMfTargetsBaseDir)'==''">$(MSBuildExtensionsPath32)\Microsoft\.NET Micro Framework\</NetMfTargetsBaseDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
+  <ItemGroup>
+    <Compile Include="boolExpressions\And.cs" />
+    <Compile Include="boolExpressions\BinaryBoolExpression.cs" />
+    <Compile Include="boolExpressions\CompareOp.cs" />
+    <Compile Include="boolExpressions\Or.cs" />
+    <Compile Include="codeGeneration\FuncBuilder.cs" />
+    <Compile Include="codeGeneration\Traits.cs" />
+    <Compile Include="codeGeneration\MethodInvoker.cs" />
+    <Compile Include="codeGeneration\registerAllocation\VariableAllocatorResult.cs" />
+    <Compile Include="codeGeneration\registerAllocation\AllocatorStats.cs" />
+    <Compile Include="codeGeneration\registerAllocation\RegisterAndStackAllocator.cs" />
+    <Compile Include="codeGeneration\registerAllocation\VariableAllocatorHelper.cs" />
+    <Compile Include="codeGeneration\BranchLogic.cs" />
+    <Compile Include="codeGeneration\Delegates.cs" />
+    <Compile Include="codeGeneration\util\CodeGeneratorHints.cs" />
+    <Compile Include="codeGeneration\util\FuncBuilderHints.cs" />
+    <Compile Include="codeGeneration\entities\Namespace.cs" />
+    <Compile Include="codeGeneration\registerAllocation\VariableAllocator.cs" />
+    <Compile Include="codeGeneration\entities\TerminalName.cs" />
+    <Compile Include="codeGeneration\util\NamespaceAndNextIndex.cs" />
+    <Compile Include="codeGeneration\util\PassTraits.cs" />
+    <Compile Include="codeGeneration\util\StaticVariableInfo.cs" />
+    <Compile Include="codeGeneration\util\LocalVariableInfo.cs" />
+    <Compile Include="codeGeneration\util\VariableInfo.cs" />
+    <Compile Include="codeGeneration\util\VariableToInfo.cs" />
+    <Compile Include="coding\MyShortBuilder.cs" />
+    <Compile Include="coding\ReadOnlyDictionary.cs" />
+    <Compile Include="expressions\arrays\IntArrayVariable.cs" />
+    <Compile Include="expressions\firmware\HalCompletion.cs" />
+    <Compile Include="expressions\formulas\AluOperation.cs" />
+    <Compile Include="expressions\formulas\Assignment.cs" />
+    <Compile Include="expressions\pio\FastOutputPort.cs" />
+    <Compile Include="expressions\pio\PIOReference.cs" />
+    <Compile Include="expressions\pointers\AddressOf.cs" />
+    <Compile Include="expressions\staticFunctions\FuncDeclaration.cs" />
+    <Compile Include="expressions\staticFunctions\FuncDefinition.cs" />
+    <Compile Include="expressions\variables\BytePointerVariable.cs" />
+    <Compile Include="expressions\BinaryIntExpression.cs" />
+    <Compile Include="expressions\pointers\MethodDispatchTablePointer.cs" />
+    <Compile Include="expressions\pointers\FuncPointer.cs" />
+    <Compile Include="expressions\casts\FuncPointerCast.cs" />
+    <Compile Include="expressions\references\IndirectByteReference.cs" />
+    <Compile Include="expressions\references\IndirectIntReference.cs" />
+    <Compile Include="expressions\references\IndirectReference.cs" />
+    <Compile Include="expressions\casts\IntCast.cs" />
+    <Compile Include="expressions\casts\IntPointerCast.cs" />
+    <Compile Include="expressions\variables\FuncPointerVariable.cs" />
+    <Compile Include="expressions\variables\IntPointerVariable.cs" />
+    <Compile Include="expressions\variables\IntVariable.cs" />
+    <Compile Include="expressions\util\IntExpressionHelper.cs" />
+    <Compile Include="expressions\pointers\Pointer.cs" />
+    <Compile Include="expressions\formulas\Shift.cs" />
+    <Compile Include="expressions\util\StorageManager.cs" />
+    <Compile Include="expressions\formulas\UnaryMinus.cs" />
+    <Compile Include="expressions\variables\MethodDispatchTableVariable.cs" />
+    <Compile Include="expressions\variables\PIOReferenceVariable.cs" />
+    <Compile Include="fluent\ControlFlowExtensionMethods.cs" />
+    <Compile Include="codeGeneration\entities\Label.cs" />
+    <Compile Include="fluent\Declaration.cs" />
+    <Compile Include="fluent\For.cs" />
+    <Compile Include="fluent\If.cs" />
+    <Compile Include="fluent\LocalDeclarations.cs" />
+    <Compile Include="fluent\StandardArgs.cs" />
+    <Compile Include="fluent\StaticDeclarations.cs" />
+    <Compile Include="fluent\UtilityExtensionMethods.cs" />
+    <Compile Include="expressions\pointers\BytePointer.cs" />
+    <Compile Include="expressions\pointers\IntPointer.cs" />
+    <Compile Include="expressions\IntExpression.cs" />
+    <Compile Include="fluent\While.cs" />
+    <Compile Include="representations\IReadable.cs" />
+    <Compile Include="representations\IReference.cs" />
+    <Compile Include="representations\Register.cs" />
+    <Compile Include="representations\RegisterOrByte.cs" />
+    <Compile Include="representations\Representation.cs" />
+    <Compile Include="representations\StackWordRelativeToZero.cs" />
+    <Compile Include="representations\StackWordRelativeToEndOfVariables.cs" />
+    <Compile Include="representations\StackWord.cs" />
+    <Compile Include="expressions\formulas\Add.cs" />
+    <Compile Include="boolExpressions\BoolExpression.cs" />
+    <Compile Include="representations\ByteArrayElement.cs" />
+    <Compile Include="expressions\IntConstant.cs" />
+    <Compile Include="expressions\Expression.cs" />
+    <Compile Include="opCodes\OpCode.cs" />
+    <Compile Include="opCodes\Emitter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="codeGeneration\CodeGenerator.cs" />
+    <Compile Include="coding\MiscExtensionMethods.cs" />
+    <Compile Include="representations\Static.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SPOT.Hardware" />
+    <Reference Include="Microsoft.SPOT.Native">
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ExtensionMethodHack\ExtensionMethodHack.csproj">
+      <Project>{0F33557E-00CB-4928-B318-DD3D522CB15C}</Project>
+      <Name>ExtensionMethodHack</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SimpleInteropInvoker\SimpleInteropInvoker.csproj">
+      <Project>{257C6E16-A664-4358-9659-E4C0BBEDA03D}</Project>
+      <Name>SimpleInteropInvoker</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+</Project>

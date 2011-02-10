@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using DotCopter.Commons.Logging;
 using DotCopter.Commons.Utilities;
-using DotCopter.ControlAlgorithms.Implementations.PID;
+using DotCopter.ControlAlgorithms.PID;
 using DotCopter.Hardware.Gyro;
 using DotCopter.Hardware.Implementations.Bus;
 using DotCopter.Hardware.Motor;
@@ -18,12 +18,12 @@ namespace DotCopter.FlightController.Implementations.FezPanda
         private readonly ISDCard _sdCard;
         private readonly ControllerWithThreading _controller;
         private readonly ILogger _logger;
-        private readonly TWIBus _twiBus;
-        private readonly ProportionalIntegralDerivativeSettings[] _pidSettings;
-        private readonly IRadio _radio;
+        private readonly I2CBus _twiBus;
+        private readonly PIDSettings[] _pidSettings;
+        private readonly Radio _radio;
         private readonly AxesController _axesController;
-        private readonly IMotors _motors;
-        private readonly IGyro _gyro;
+        //private readonly Motors _motors;
+        private readonly Gyro _gyro;
         private bool _running;
 
         private DateTime _lastReceivedGearChange;
@@ -79,7 +79,7 @@ namespace DotCopter.FlightController.Implementations.FezPanda
             _running = false;
             _controller.Stop();
             _sdCard.UnMountFileSystem();
-            _motors.SetSafe();
+            //_motors.SetSafe();
             Debug.Print("Successfully Shut Down");
         }
 
@@ -126,16 +126,32 @@ namespace DotCopter.FlightController.Implementations.FezPanda
             _firstReceivedGearChange = DateTime.MinValue;
         }
 
-        private static ProportionalIntegralDerivativeSettings[] GetPIDSettings()
+        private static PIDSettings[] GetPIDSettings()
         {
-            ProportionalIntegralDerivativeSettings pitchSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
 
-            ProportionalIntegralDerivativeSettings rollSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
+            PIDSettings pitchSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
 
-            ProportionalIntegralDerivativeSettings yawSettings =
-                new ProportionalIntegralDerivativeSettings(3F, 0F, 0F, 2000F);
+            PIDSettings rollSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
+
+            PIDSettings yawSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
             return new[] { pitchSettings, rollSettings, yawSettings };
         }
 

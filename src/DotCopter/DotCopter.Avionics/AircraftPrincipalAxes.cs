@@ -1,6 +1,6 @@
 namespace DotCopter.Avionics
 {
-    public class AircraftPrincipalAxes
+    public struct AircraftPrincipalAxes
     {
         public float Pitch;
         public float Roll;

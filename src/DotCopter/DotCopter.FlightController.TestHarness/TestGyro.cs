@@ -4,27 +4,24 @@ using DotCopter.Hardware.Gyro;
 
 namespace DotCopter.FlightController.TestHarness
 {
-    public class TestGyro : IGyro
+    public class TestGyro : Gyro
     {
-        private AircraftPrincipalAxes _axes;
         private readonly Random _random;
-        public TestGyro()
+        public TestGyro() : base(new AircraftPrincipalAxes {Pitch = 0, Roll = 0, Yaw = 0})
         {
             _random = new Random();
-            _axes = new AircraftPrincipalAxes {Pitch = 1, Roll = 1, Yaw = 1};
+        }
+        
+        public override void Update()
+        {
+            Axes.Pitch = _random.Next();
+            Axes.Roll = _random.Next();
+            Axes.Yaw = _random.Next();   
         }
 
-        public AircraftPrincipalAxes Axes
+        public override void Zero()
         {
-            get { return _axes; }
-            set { _axes = value; }
-        }
-
-        public void Update()
-        {
-            _axes.Pitch = _random.Next();
-            _axes.Roll = _random.Next();
-            _axes.Yaw = _random.Next();   
+            throw new NotImplementedException();
         }
     }
 }

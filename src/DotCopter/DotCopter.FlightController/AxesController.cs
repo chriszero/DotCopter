@@ -1,3 +1,4 @@
+
 using DotCopter.Avionics;
 using DotCopter.ControlAlgorithms.Implementations.PID;
 using DotCopter.ControlAlgorithms.PID;
@@ -6,23 +7,23 @@ namespace DotCopter.FlightController
 {
     public class AxesController
     {
-        private readonly IProportionalIntegralDerivative _pitchController;
-        private readonly IProportionalIntegralDerivative _rollController;
-        private readonly IProportionalIntegralDerivative _yawController;
+        private readonly ControlAlgorithms.PID.PID _pitchController;
+        private readonly ControlAlgorithms.PID.PID _rollController;
+        private readonly ControlAlgorithms.PID.PID _yawController;
 
-        public AxesController(ProportionalIntegralDerivativeSettings pitchSettings, ProportionalIntegralDerivativeSettings rollSettings, ProportionalIntegralDerivativeSettings yawSettings, bool useWindup)
+        public AxesController(PIDSettings pitchSettings, PIDSettings rollSettings, PIDSettings yawSettings, bool useWindup)
         {
             if (useWindup)
             {
-                _pitchController = new ProportionalIntegralDerivativeWithWindupGuard(pitchSettings);
-                _rollController = new ProportionalIntegralDerivativeWithWindupGuard(rollSettings);
-                _yawController = new ProportionalIntegralDerivativeWithWindupGuard(yawSettings);
+                _pitchController = new PIDWindup(pitchSettings);
+                _rollController = new PIDWindup(rollSettings);
+                _yawController = new PIDWindup(yawSettings);
             }
             else
             {
-                _pitchController = new ProportionalIntegralDerivative(pitchSettings);
-                _rollController = new ProportionalIntegralDerivative(rollSettings);
-                _yawController = new ProportionalIntegralDerivative(yawSettings);
+                _pitchController = new ControlAlgorithms.Implementations.PID.PID(pitchSettings);
+                _rollController = new ControlAlgorithms.Implementations.PID.PID(rollSettings);
+                _yawController = new ControlAlgorithms.Implementations.PID.PID(yawSettings);
             }
             Axes = new AircraftPrincipalAxes(){Pitch = 0, Roll = 0, Yaw = 0};
         }

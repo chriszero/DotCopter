@@ -1,24 +1,22 @@
 using System;
 using DotCopter.Avionics;
-using DotCopter.Hardware.Gyro;
+using DotCopter.Hardware;
 
 namespace DotCopter.Hardware.Implementations.Gyro
 {
-    public class DefaultGyro: IGyro
+    public class DefaultGyro : Hardware.Gyro.Gyro
     {
-        public AircraftPrincipalAxes Axes
+        public DefaultGyro(AircraftPrincipalAxes axes) : base(axes)
         {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
         }
 
-        public void Update()
+        public override void Update()
         {
             throw new NotImplementedException();
         }
 
 
-        public void Zero()
+        public override void Zero()
         {
             throw new NotImplementedException();
         }

@@ -4,6 +4,11 @@ namespace DotCopter.Hardware.Motor
 {
     public class MotorSettings
     {
+        public readonly Scale MotorScale;
+        public readonly float SafeOutput;
+        public readonly float MinimumOutput;
+        public readonly float MaximumOutput;
+
         public MotorSettings(Scale motorScale, float safeOutput, float minimumOutput, float maximumOutput )
         {
             MotorScale = motorScale;
@@ -12,9 +17,5 @@ namespace DotCopter.Hardware.Motor
             MaximumOutput = maximumOutput;
         }
 
-        public Scale MotorScale { get; private set; }
-        public float SafeOutput { get; private set; }
-        public float MinimumOutput { get; private set; }
-        public float MaximumOutput { get; private set; }
     }
 }

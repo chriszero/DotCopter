@@ -30,8 +30,9 @@
   </PropertyGroup>
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
-    <Compile Include="Mixing\IMotorMixer.cs" />
-    <Compile Include="PID\IProportionalIntegralDerivative.cs" />
+    <Compile Include="Mixing\MotorMixer.cs" />
+    <Compile Include="PID\PID.cs" />
+    <Compile Include="PID\PIDSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

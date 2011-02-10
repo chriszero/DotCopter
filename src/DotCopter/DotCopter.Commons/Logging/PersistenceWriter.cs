@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using DotCopter.Commons.Serialization;
 
 namespace DotCopter.Commons.Logging
@@ -17,6 +18,11 @@ namespace DotCopter.Commons.Logging
         public void Flush()
         {
             _stream.Flush();
+        }
+
+        public void Write(string entry)
+        {
+            throw new NotImplementedException();
         }
 
 
