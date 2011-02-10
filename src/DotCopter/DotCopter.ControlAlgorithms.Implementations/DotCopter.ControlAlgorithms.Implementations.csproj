@@ -31,9 +31,8 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="Mixing\QuadMixer.cs" />
-    <Compile Include="PID\ProportionalIntegralDerivative.cs" />
-    <Compile Include="PID\ProportionalIntegralDerivativeSettings.cs" />
-    <Compile Include="PID\ProportionalIntegralDerivativeWithWindupGuard.cs" />
+    <Compile Include="PID\PID.cs" />
+    <Compile Include="PID\PIDWindup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

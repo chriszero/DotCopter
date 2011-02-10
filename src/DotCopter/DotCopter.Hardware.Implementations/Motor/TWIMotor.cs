@@ -1,16 +1,15 @@
 using System;
-using DotCopter.Hardware.Motor;
 
 namespace DotCopter.Hardware.Implementations.Motor
 {
-    class TWIMotor : IMotor
+    class TWIMotor : Hardware.Motor.Motor
     {
-        public void Update(float throttle)
+        public override void Update(float throttle)
         {
             throw new NotImplementedException();
         }
 
-        public void SetSafe()
+        public override void SetSafe()
         {
             throw new NotImplementedException();
         }

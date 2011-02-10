@@ -3,9 +3,8 @@ using DotCopter.Commons.Logging;
 using DotCopter.Commons.Serialization;
 using DotCopter.Commons.Utilities;
 using DotCopter.ControlAlgorithms.Implementations.Mixing;
-using DotCopter.ControlAlgorithms.Implementations.PID;
 using DotCopter.ControlAlgorithms.Mixing;
-using DotCopter.Framework.Implementations.GHIElectronics.PulseWidthModulation;
+using DotCopter.ControlAlgorithms.PID;
 using DotCopter.Hardware.Gyro;
 using DotCopter.Hardware.Implementations.Bus;
 using DotCopter.Hardware.Implementations.GHIElectronics.FEZPanda;
@@ -19,6 +18,7 @@ using DotCopter.Hardware.Radio;
 using DotCopter.Hardware.Storage;
 using GHIElectronics.NETMF.Hardware;
 using Microsoft.SPOT.Hardware;
+using PWM = DotCopter.Framework.Implementations.GHIElectronics.PWM.PWM;
 
 namespace DotCopter.FlightController.Implementations.FezPanda
 {
@@ -28,27 +28,27 @@ namespace DotCopter.FlightController.Implementations.FezPanda
         {
             //Initialize motors first
             MotorSettings motorSettings = GetMotorSettings();
-            IMotor frontMotor = new PWMMotor(new PulseWidthModulation((Cpu.Pin)FezPin.PWM.Di8), motorSettings);
-            IMotor rearMotor = new PWMMotor(new PulseWidthModulation((Cpu.Pin)FezPin.PWM.Di10), motorSettings);
-            IMotor leftMotor = new PWMMotor(new PulseWidthModulation((Cpu.Pin)FezPin.PWM.Di9), motorSettings);
-            IMotor rightMotor = new PWMMotor(new PulseWidthModulation((Cpu.Pin)FezPin.PWM.Di6), motorSettings);
-            IMotorMixer mixer = new QuadMixer(frontMotor, rearMotor, leftMotor, rightMotor);
+            Motor frontMotor = new PWMMotor(new PWM((Cpu.Pin) FezPin.PWM.Di8, 4000000), motorSettings);
+            Motor rearMotor = new PWMMotor(new PWM((Cpu.Pin) FezPin.PWM.Di10, 4000000), motorSettings);
+            Motor leftMotor = new PWMMotor(new PWM((Cpu.Pin) FezPin.PWM.Di9, 4000000), motorSettings);
+            Motor rightMotor = new PWMMotor(new PWM((Cpu.Pin) FezPin.PWM.Di6, 4000000), motorSettings);
+            MotorMixer mixer = new QuadMixer(frontMotor, rearMotor, leftMotor, rightMotor);
 
             //Telemetry
-            ISDCard sdCard = new SDCard();
+            ISDCard sdCard = (ISDCard) new SDCard();
             if (Configuration.DebugInterface.GetCurrent() == Configuration.DebugInterface.Port.USB1)
                 sdCard.MountFileSystem();
             else
                 new TelemetryPresenter(sdCard,(Cpu.Pin) FezPin.Digital.LED);
-            ILogger logger = new PersistenceWriter(new FileStream(@"\SD\telemetry.bin",FileMode.CreateNew), new TelemetryFormatter());
+            ILogger logger = new PersistenceWriter(new FileStream(@"\SD\telemetry.bin",FileMode.OpenOrCreate), new TelemetryFormatter());
 
             //Sensors
-            TWIBus twiBus = new TWIBus();
-            IGyro gyro = new ITG3200(twiBus, GetGyroFactor());
-            IRadio radio = new DefaultRadio(twiBus, GetRadioSettings());
+            I2CBus twiBus = new I2CBus();
+            Gyro gyro = new ITG3200(twiBus, GetGyroFactor());
+            Radio radio = new DefaultRadio(twiBus, GetRadioSettings());
 
             //Control Algoriths
-            ProportionalIntegralDerivativeSettings[] pidSettings = GetPIDSettings();
+            PIDSettings[] pidSettings = GetPIDSettings();
             AxesController axesController = new AxesController(pidSettings[0], pidSettings[1], pidSettings[2], true);
             ControllerLoopSettings loopSettings = GetLoopSettings();
             Controller controller = new Controller(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(),logger);
@@ -56,16 +56,32 @@ namespace DotCopter.FlightController.Implementations.FezPanda
             //controller.Start();
         }
 
-        private static ProportionalIntegralDerivativeSettings[] GetPIDSettings()
+        private static PIDSettings[] GetPIDSettings()
         {
-            ProportionalIntegralDerivativeSettings pitchSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
 
-            ProportionalIntegralDerivativeSettings rollSettings =
-                new ProportionalIntegralDerivativeSettings(3.2F, 0F, -.5F, 2000F);
+            PIDSettings pitchSettings = new PIDSettings
+                                            {
+                                                ProportionalGain = 3.2F,
+                                                IntegralGain = 0F,
+                                                DerivativeGain = -.5F,
+                                                WindupLimit = 2000F
+                                            };
 
-            ProportionalIntegralDerivativeSettings yawSettings =
-                new ProportionalIntegralDerivativeSettings(3F, 0F, 0F, 2000F);
+            PIDSettings rollSettings = new PIDSettings
+                                           {
+                                               ProportionalGain = 3.2F,
+                                               IntegralGain = 0F,
+                                               DerivativeGain = -.5F,
+                                               WindupLimit = 2000F
+                                           };
+
+            PIDSettings yawSettings = new PIDSettings
+                                          {
+                                              ProportionalGain = 3.2F,
+                                              IntegralGain = 0F,
+                                              DerivativeGain = -.5F,
+                                              WindupLimit = 2000F
+                                          };
             return new[] { pitchSettings, rollSettings, yawSettings };
         }
 
@@ -73,10 +89,10 @@ namespace DotCopter.FlightController.Implementations.FezPanda
         {
             return new ControllerLoopSettings(
                 50,         //radioLoopFrequency
-                50,        //sensorLoopFrequency
-                50,        //controlAlgorithmFrequency
-                50,        //motorLoopFrequency
-                50,          //telemetryLoopFrequency
+                150,        //sensorLoopFrequency
+                150,        //controlAlgorithmFrequency
+                150,        //motorLoopFrequency
+                1,          //telemetryLoopFrequency
                 10000000);  //loopUnit
         }
 

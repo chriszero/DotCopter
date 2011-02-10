@@ -55,6 +55,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DotCopter.Avionics\DotCopter.Avionics.csproj">
+      <Project>{6D18BE7A-7F4E-4756-B5DB-100F1718E7D6}</Project>
+      <Name>DotCopter.Avionics</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DotCopter.Commons\DotCopter.Commons.csproj">
       <Project>{C3283CF0-C6E6-4544-9764-F0C3F7BE6AD3}</Project>
       <Name>DotCopter.Commons</Name>

@@ -1,33 +1,32 @@
 using DotCopter.Commons.Utilities;
-using DotCopter.Framework.PulseWidthModulation;
+using DotCopter.Framework.PWM;
 using DotCopter.Hardware.Motor;
 
 namespace DotCopter.Hardware.Implementations.Motor
 {
-    public class PWMMotor : IMotor
+    public class PWMMotor : Hardware.Motor.Motor
     {
-        private IPulseWidthModulation _pwmOutput;
-        private MotorSettings _settings;
-        private const uint _period = 2000000; //2ms or 500Hz
+        private readonly PWM _pwmOutput;
+        private readonly MotorSettings _settings;
 
-        public PWMMotor(IPulseWidthModulation pwmOutput, MotorSettings settings)
+        public PWMMotor(PWM pwmOutput, MotorSettings settings)
         {
             _pwmOutput = pwmOutput;
             _settings = settings;
             SetSafe();
         }
-        public void Update(float throttle)
+        public override void Update(float throttle)
         {
             throttle = Logic.Constrain(throttle, _settings.MinimumOutput, _settings.MaximumOutput);
             throttle = _settings.MotorScale.Calculate(throttle);
-            _pwmOutput.SetPulse(_period, (uint)throttle);
+            _pwmOutput.SetPulse((uint)throttle);
         }
 
-        public void SetSafe()
+        public override sealed void SetSafe()
         {
             float throttle = _settings.SafeOutput;
             throttle = _settings.MotorScale.Calculate(throttle);
-            _pwmOutput.SetPulse(_period, (uint)throttle);
+            _pwmOutput.SetPulse((uint)throttle);
         }
     }
 }

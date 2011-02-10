@@ -1,51 +1,51 @@
 using DotCopter.Avionics;
-using DotCopter.Hardware.Gyro;
+using DotCopter.Commons.Utilities;
 using DotCopter.Hardware.Implementations.Bus;
+using Microsoft.SPOT.Hardware;
 
 namespace DotCopter.Hardware.Implementations.Gyro
 {
-    public class ITG3200 : TWISlave, IGyro
+    public class ITG3200 : Hardware.Gyro.Gyro
     {
         private readonly float _factor;
         private byte[] _buffer = new byte[6];
         private float _zeroPitch;
         private float _zeroRoll;
         private float _zeroYaw;
+        private I2CBus _twiBus;
+        private I2CDevice.Configuration _i2cConfiguration = new I2CDevice.Configuration(0x69,400);
 
-        public ITG3200(TWIBus twiBus, float factor): base(0x69, 400, twiBus) 
+        public ITG3200(I2CBus twiBus, float factor) : base(new AircraftPrincipalAxes())
         {
+            _twiBus = twiBus;
             _factor = factor;
-            Axes = new AircraftPrincipalAxes { Pitch = 0, Roll = 0, Yaw = 0 };
             Initialize();
         }
 
         private void Initialize()
         {
             //Initialize the gyro
-            Write(new byte[] { 0x3E, 0x80 }, 100); // send a reset to the device
-            Write(new byte[] { 0x15, 0x00 }, 100); // 1kHz sample rate
-            Write(new byte[] { 0x16, 0x1D }, 100); // 10Hz low pass filter
-            Write(new byte[] { 0x17, 0x05 }, 100); // enable send raw values
-            Write(new byte[] { 0x3E, 0x01 }, 100); // use internal oscillator
+            _twiBus.Write(_i2cConfiguration, new byte[] { 0x3E, 0x80 }, 100); // send a reset to the device
+            _twiBus.Write(_i2cConfiguration, new byte[] { 0x15, 0x00 }, 100); // 1kHz sample rate
+            _twiBus.Write(_i2cConfiguration, new byte[] { 0x16, 0x1D }, 100); // 10Hz low pass filter
+            _twiBus.Write(_i2cConfiguration, new byte[] { 0x17, 0x05 }, 100); // enable send raw values
+            _twiBus.Write(_i2cConfiguration, new byte[] { 0x3E, 0x01 }, 100); // use internal oscillator
             Zero();
         }
 
-        public void Update()
+        public override void Update()
         {
-            Write(new byte[] { 0x1D }, 100);
-            Read(ref _buffer, 100);
+            _twiBus.ReadRegister(_i2cConfiguration, 0x1D, _buffer, 100);
+            float pitch = (short) (_buffer[0] << 8) | _buffer[1];
+            float roll = (short) (_buffer[2] << 8) | _buffer[3];
+            float yaw = (short) (_buffer[4] << 8) | _buffer[5];
 
-            //cast to short is necessary due to the gyro registers being 2's compliment shorts, leaving them as int will cause corruption
-            float pitch = (short)(_buffer[0] << 8 | _buffer[1]) / _factor;
-            float roll = (short)(_buffer[2] << 8 | _buffer[3]) / _factor;
-            float yaw = (short)(_buffer[4] << 8 | _buffer[5]) / _factor;
-
-            Axes.Pitch = pitch - _zeroPitch;
-            Axes.Roll = roll - _zeroRoll;
-            Axes.Yaw = yaw - _zeroYaw;
+            Axes.Pitch = pitch/_factor - _zeroPitch;
+            Axes.Roll = roll/_factor - _zeroRoll;
+            Axes.Yaw = yaw/_factor - _zeroYaw;
         }
 
-        private void Zero()
+        public override void Zero()
         {
             //Average the gyro for 50 readings to create zero
             float[] pitchData = new float[50];
@@ -84,6 +84,5 @@ namespace DotCopter.Hardware.Implementations.Gyro
             }
         }
 
-        public AircraftPrincipalAxes Axes { get; set; }
     }
 }

@@ -1,16 +1,16 @@
 ﻿using System.IO;
+using DotCopter.Avionics;
 using DotCopter.Commons.Logging;
 using DotCopter.Commons.Serialization;
 using DotCopter.Commons.Utilities;
-using DotCopter.ControlAlgorithms.Implementations.PID;
 using DotCopter.ControlAlgorithms.Mixing;
+using DotCopter.ControlAlgorithms.PID;
 using DotCopter.Hardware.Gyro;
 using DotCopter.Hardware.Implementations.GHIElectronics.Storage;
 using DotCopter.Hardware.Implementations.Gyro;
 using DotCopter.Hardware.Implementations.Radio;
 using DotCopter.Hardware.Motor;
 using DotCopter.Hardware.Radio;
-using DotCopter.Hardware.Storage;
 
 namespace DotCopter.FlightController.Implementations.Netduino
 {
@@ -18,7 +18,7 @@ namespace DotCopter.FlightController.Implementations.Netduino
     {
         public static void Main()
         {
-            ISDCard sdCard = new SDCard();
+            SDCard sdCard = new SDCard();
             //todo: need sdCard mode detection
             ILogger logger = new PersistenceWriter(new FileStream(@"\SD\telemetry.bin", FileMode.CreateNew), new TelemetryFormatter());
             //ILogger logger = new DebugLogger(); // use for debugging
@@ -40,27 +40,43 @@ namespace DotCopter.FlightController.Implementations.Netduino
             //SpeedController electricSpeedControllerLeft = new SpeedController(speedControllerSettings, pwmLeft);
 
 
-            IMotorMixer mixer = null;
-            ProportionalIntegralDerivativeSettings[] pidSettings = GetPIDSettings();
+            MotorMixer mixer = null;
+            PIDSettings[] pidSettings = GetPIDSettings();
             AxesController axesController = new AxesController(pidSettings[0], pidSettings[1], pidSettings[2], true);
-            IGyro gyro = new DefaultGyro();
-            IRadio radio = new DefaultRadio(null,null);
+            Gyro gyro = new DefaultGyro(new AircraftPrincipalAxes());
+            Radio radio = new DefaultRadio(null,null);
             ControllerLoopSettings loopSettings = GetLoopSettings();
             Controller controller = new Controller(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(), logger);
 
 
         }
 
-        private static ProportionalIntegralDerivativeSettings[] GetPIDSettings()
+        private static PIDSettings[] GetPIDSettings()
         {
-            ProportionalIntegralDerivativeSettings pitchSettings =
-                new ProportionalIntegralDerivativeSettings(1.2F, 0F, -.5F, 2000F);
 
-            ProportionalIntegralDerivativeSettings rollSettings =
-                new ProportionalIntegralDerivativeSettings(1.2F, 0F, -.5F, 2000F);
+            PIDSettings pitchSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
 
-            ProportionalIntegralDerivativeSettings yawSettings =
-                new ProportionalIntegralDerivativeSettings(3F, 0F, 0F, 2000F);
+            PIDSettings rollSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
+
+            PIDSettings yawSettings = new PIDSettings
+            {
+                DerivativeGain = 3.2F,
+                IntegralGain = 0F,
+                ProportionalGain = -.5F,
+                WindupLimit = 2000F
+            };
             return new[] { pitchSettings, rollSettings, yawSettings };
         }
 

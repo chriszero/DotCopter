@@ -1,40 +1,24 @@
 ﻿using System;
 using DotCopter.Avionics;
+using DotCopter.Hardware;
 using DotCopter.Hardware.Radio;
 
 namespace DotCopter.FlightController.TestHarness
 {
-    public class TestRadio : IRadio
+    public class TestRadio : Radio
     {
-        private AircraftPrincipalAxes _axes;
         private readonly Random _random;
 
-        public TestRadio()
+        public TestRadio() : base(0, new AircraftPrincipalAxes { Pitch = 1, Roll = 1, Yaw = 1 },false)
         {
-            _axes = new AircraftPrincipalAxes { Pitch = 1, Roll = 1, Yaw = 1 };
             _random = new Random();
         }
 
-        public float Throttle
+        public override void Update()
         {
-            get { return 16f; }
-        }
-
-        public bool Gear
-        {
-            get { return true; }
-        }
-
-        public AircraftPrincipalAxes Axes
-        {
-            get { return _axes; }
-        }
-
-        public void Update()
-        {
-            _axes.Pitch = _random.Next();
-            _axes.Roll = _random.Next();
-            _axes.Yaw = _random.Next();   
+            Axes.Pitch = _random.Next();
+            Axes.Roll = _random.Next();
+            Axes.Yaw = _random.Next();   
         }
     }
 }

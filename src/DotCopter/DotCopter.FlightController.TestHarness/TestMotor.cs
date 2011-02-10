@@ -1,15 +1,14 @@
-﻿using System;
-using DotCopter.Hardware.Motor;
+﻿using DotCopter.Hardware.Motor;
 
 namespace DotCopter.FlightController.TestHarness
 {
-    public class TestMotor : IMotor
+    public class TestMotor : Motor
     {
-        public void Update(float throttle)
+        public override void Update(float throttle)
         {
         }
 
-        public void SetSafe()
+        public override void SetSafe()
         {
         }
     }

@@ -11,11 +11,10 @@ namespace DotCopter.FlightController
 {
     public class Controller
     {
-        public Controller(IMotorMixer mixer, AxesController pid, IGyro gyro, IRadio radio, ControllerLoopSettings loopSettings, MotorSettings motorSettings, ILogger logger)
+        public Controller(MotorMixer mixer, AxesController pid, Gyro gyro, Radio radio, ControllerLoopSettings loopSettings, MotorSettings motorSettings, ILogger logger)
         {
             TelemetryData telemetryData = new TelemetryData();
             long previousTime = DateTime.Now.Ticks;
-            long maxLoopTime = 0;
             long lastRadioTime = 0;
             long lastSensorTime = 0;
             long lastControlTime = 0;
@@ -23,8 +22,6 @@ namespace DotCopter.FlightController
             long lastTelemetryTime = 0;
 
             bool systemArmed = false;
-            //bool loggingEnabled = false;
-            //bool logFlushed = false;
             
 
             while (true)
@@ -32,7 +29,7 @@ namespace DotCopter.FlightController
                 long currentTime = DateTime.Now.Ticks;
                 if (currentTime >= (lastRadioTime + loopSettings.RadioLoopPeriod))
                 {
-                    Debug.Print((loopSettings.LoopUnit/(float)(currentTime-lastRadioTime)).ToString());
+                    //Debug.Print((loopSettings.LoopUnit/(float)(currentTime-lastRadioTime)).ToString());
                     lastRadioTime = currentTime;
                     radio.Update();
                     systemArmed = radio.Throttle > motorSettings.MinimumOutput;
@@ -70,16 +67,14 @@ namespace DotCopter.FlightController
                     lastMotorTime = currentTime;
                 }
 
-                /*
                 currentTime = DateTime.Now.Ticks;
                 if (systemArmed && (currentTime >= (lastTelemetryTime + loopSettings.TelemetryLoopPeriod)))
                 {
+                    //Debug.Print((loopSettings.LoopUnit / (float)(currentTime - lastTelemetryTime)).ToString());
                     telemetryData.Update(gyro.Axes, radio.Axes, pid.Axes, currentTime);
                     lastTelemetryTime = currentTime;
-                    //logger.Write(telemetryData);
-                    //Debug.GC(true);
+                    logger.Write(telemetryData);
                 }
-                */
             }
         }
     }

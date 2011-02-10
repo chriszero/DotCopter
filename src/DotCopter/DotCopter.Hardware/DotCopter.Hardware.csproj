@@ -31,13 +31,12 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="delegates.cs" />
-    <Compile Include="Motor\IMotor.cs" />
-    <Compile Include="Motor\IMotors.cs" />
+    <Compile Include="Gyro\Gyro.cs" />
+    <Compile Include="Motor\Motor.cs" />
     <Compile Include="Motor\MotorSettings.cs" />
     <Compile Include="Radio\RadioSettings.cs" />
-    <Compile Include="Gyro\IGyro.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Radio\IRadio.cs" />
+    <Compile Include="Radio\Radio.cs" />
     <Compile Include="Storage\ISDCard.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -59,7 +58,5 @@
       <Name>DotCopter.Framework</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bus\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>
