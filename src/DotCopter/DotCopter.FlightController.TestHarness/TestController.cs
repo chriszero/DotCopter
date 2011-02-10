@@ -20,7 +20,7 @@ namespace DotCopter.FlightController.TestHarness
                 long currentTime = DateTime.Now.Ticks;
                 if (currentTime >= (lastRadioTime + loopSettings.RadioLoopPeriod))
                 {
-                    Debug.Print((loopSettings.LoopUnit/(float) (currentTime - lastRadioTime)).ToString());
+                    //Debug.Print((loopSettings.LoopUnit/(float) (currentTime - lastRadioTime)).ToString());
                     lastRadioTime = currentTime;
                     radio.Update();
                     gyro.Update();

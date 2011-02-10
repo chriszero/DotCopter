@@ -37,10 +37,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Sensors.cs" />
     <Compile Include="TestController.cs" />
     <Compile Include="TestGyro.cs" />
     <Compile Include="TestMotor.cs" />
     <Compile Include="TestRadio.cs" />
+    <Compile Include="ThreadingProgram.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.SPOT.Graphics" />
