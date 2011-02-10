@@ -23,7 +23,7 @@ namespace DotCopter.FlightController.TestHarness
             PIDSettings[] pidSettings = GetPIDSettings();
             AxesController axesController = new AxesController(pidSettings[0], pidSettings[1], pidSettings[2], true);
             ControllerLoopSettings loopSettings = GetLoopSettings();
-            Controller controller = new Controller(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(), logger);
+            TestController controller = new TestController(mixer, axesController, gyro, radio, loopSettings, GetMotorSettings(), logger);
         }
 
         private static PIDSettings[] GetPIDSettings()
@@ -59,11 +59,11 @@ namespace DotCopter.FlightController.TestHarness
         private static ControllerLoopSettings GetLoopSettings()
         {
             return new ControllerLoopSettings(
-                5000,         //radioLoopFrequency
-                5000,        //sensorLoopFrequency
-                5000,        //controlAlgorithmFrequency
-                5000,        //motorLoopFrequency
-                5000,          //telemetryLoopFrequency
+                200,         //radioLoopFrequency
+                200,        //sensorLoopFrequency
+                200,        //controlAlgorithmFrequency
+                200,        //motorLoopFrequency
+                200,          //telemetryLoopFrequency
                 10000000);  //loopUnit
         }
 
