@@ -9,6 +9,7 @@ namespace DotCopter.Hardware.Implementations.Gyro
         public AircraftPrincipalAxes Axes
         {
             get { throw new NotImplementedException(); }
+            set { throw new NotImplementedException(); }
         }
 
         public void Update()

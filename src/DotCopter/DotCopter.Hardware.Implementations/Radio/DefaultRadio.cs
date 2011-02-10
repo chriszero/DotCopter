@@ -22,7 +22,7 @@ namespace DotCopter.Hardware.Implementations.Radio
         public DefaultRadio(TWIBus twiBus, RadioSettings settings): base(0x42, 400, twiBus)
         {
             _settings = settings;
-            Axes = new AircraftPrincipalAxes(0, 0, 0);
+            Axes = new AircraftPrincipalAxes { Pitch = 0, Roll = 0, Yaw = 0 };
         }
 
         public void Update()
@@ -40,14 +40,19 @@ namespace DotCopter.Hardware.Implementations.Radio
                 InvokeHaveChangedGearEvent();
             }
             */
-            Axes.Update(pitch, roll, yaw);
+            Axes.Pitch = pitch ;
+            Axes.Roll = roll ;
+            Axes.Yaw = yaw ;
         }
 
         public float Throttle { get; private set; }
         public bool Gear { get; private set; }
-        public AircraftPrincipalAxes Axes { get; private set; }
 
 
+
+
+        public AircraftPrincipalAxes Axes{get; set; }
+        
     }
 
     
