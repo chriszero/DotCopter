@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.FlightController", "DotCopter.FlightController\DotCopter.FlightController.csproj", "{844AAB6F-29E9-4CED-89A7-6031E0926BE1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.Hardware", "DotCopter.Hardware\DotCopter.Hardware.csproj", "{38725121-EA4D-444E-BB6A-401F4999F156}"
@@ -42,6 +42,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.FlightController.Implementations.TestHarness", "DotCopter.FlightController.TestHarness\DotCopter.FlightController.Implementations.TestHarness.csproj", "{FA58DD0C-B6E9-4CA2-A968-D2BCCDF13D7B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.Benchmark", "DotCopter.Benchmark\DotCopter.Benchmark.csproj", "{633F27D2-2DFE-4B7B-911D-7CE219D95BB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotCopter.FlightController.Implementations.ZeroQuad", "DotCopter.FlightController.Implementations.ZeroQuad\DotCopter.FlightController.Implementations.ZeroQuad.csproj", "{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -287,6 +289,20 @@ Global
 		{633F27D2-2DFE-4B7B-911D-7CE219D95BB4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{633F27D2-2DFE-4B7B-911D-7CE219D95BB4}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
 		{633F27D2-2DFE-4B7B-911D-7CE219D95BB4}.Release|x86.ActiveCfg = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
+		{E270D26B-86FD-46CB-93BA-0BC7B9CC4CE2}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

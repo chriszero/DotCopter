@@ -34,6 +34,7 @@
   <Import Project="$(NetMfTargetsBaseDir)$(TargetFrameworkVersion)\CSharp.Targets" />
   <ItemGroup>
     <Compile Include="Bus\I2CBus.cs" />
+    <Compile Include="Gyro\ArduImu.cs" />
     <Compile Include="Gyro\DefaultGyro.cs" />
     <Compile Include="Gyro\ITG3200.cs" />
     <Compile Include="Motor\PWMMotor.cs" />
@@ -50,6 +51,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.SPOT.Graphics" />
     <Reference Include="Microsoft.SPOT.Hardware" />
+    <Reference Include="Microsoft.SPOT.Hardware.SerialPort" />
     <Reference Include="Microsoft.SPOT.Native">
     </Reference>
     <Reference Include="System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />

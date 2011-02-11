@@ -6,6 +6,8 @@ namespace DotCopter.Framework.Implementations.GHIElectronics.PWM
     {
         private readonly global::GHIElectronics.NETMF.Hardware.PWM _pwm;
 
+        public PWM(Cpu.Pin pin, Periods period) : this(pin, (uint)period) { }
+
         public PWM(Cpu.Pin pin, uint period) : base(period)
         {
             _pwm = new global::GHIElectronics.NETMF.Hardware.PWM((global::GHIElectronics.NETMF.Hardware.PWM.Pin) pin);
